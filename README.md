@@ -58,21 +58,19 @@ Annotation sure it includes 3' ends of mRNAs because QuantSeq is 3'-targeted. Th
 - a gff describing positions and strands of the mRNAs within the fasta file
 - a hisat2 index built from your fasta file TO DO
 
-TO DO - specify hisat2 index
+Create hisat2 index with:
 
 ```{bash }
 conda activate QS2022 # activate conda environment
 mkdir input/annotation/index/ # make directory
-hisat2-build input/annotation/ANNID_RENAME.fa \
-  input/annotation/index/ANNID_RENAME_hisat2
+hisat2-build input/annotation/Cryptococcus_neoformans_var_grubii_h99.CNA3.31.dna.genome.fa \
+  input/annotation/index/CNA3_hisat2
 ```
-
-Remember to edit the fasta file name and index name as needed.
 
 
 ## Set the parameters in the nextflow file
 
-Then edit the parameters in `quantseqfwd.nf` appropriate to your analysis:
+Then edit the parameters in `process_tagseq.nf` appropriate to your analysis:
 
 - `params.input_fq_dir = 'EXPERIMENT_RENAME_fastq'` points to an input directory containing all of your fastq files 
 - `params.output_dir = 'results/counts'` points to the output directory where you would like all the outputs stored.
@@ -98,7 +96,7 @@ Then run the command:
 
 ```{bash }
 conda activate QS2022 
-nextflow run quantseqfwd.nf -with-dag flowchart.png -with-report counts_subsample/nextflow_report.html
+nextflow run process_tagseq.nf -with-dag flowchart.png -with-report counts_subsample/nextflow_report.html
 ```
 
 The options `-with-dag` and `-with-report` are just to tell you a little more about the output, they are not strictly needed in order to run.
@@ -119,7 +117,7 @@ Then run:
 
 ```{bash }
 conda activate QS2022 
-nextflow run quantseqfwd.nf -with-report counts/nextflow_report.html
+nextflow run process_tagseq.nf -with-report counts/nextflow_report.html
 ```
 
 Save the results, i.e. the contents of `results/counts`.
