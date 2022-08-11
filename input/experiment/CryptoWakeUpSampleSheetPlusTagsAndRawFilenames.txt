@@ -1,0 +1,55 @@
+# CryptoWakeUpSampleSheetPlusTagsAndRawFilenames.txt
+# This is the Sample Sheet for the CryptoWakeup experiment, paired-end RNAseq
+# SampleID: ID number of the sample
+# Code: Code for the sample that abbreviates the conditions.
+#    Y = YPD grown, R = RPMI+serum grown
+#    C = Cold 25C, M = Mid 30C, H = Hot 37C
+#    0-4,9 abbreviate timepoints. 0 = 0min, 1 = 10min, 2 = 30min, 3 = 60min, 4 = 120min, 9 = 180min (9 only used for YPD 30C samples)
+#    A,B Biological replicates
+# Medium: Growth medium, YPD or RPMI+
+# Temp: Growth temperature in degrees C
+# Time: Minutes of growth after reactivation in fresh media. 0 minutes is 5-day grown samples with no reactivation.
+# Rep: Biological replicate A or B
+# TagID: ID of RNATagSeq oligo label (removed during demultiplexing)
+# TagRead: sequence of RNATagSeq oligo label (removed during demultiplexing)
+# P7: ID of library corresponding to P7 index used to identify RNATagSeq libraries (removed earlier)
+# R1: File containing demultiplexed read 1 in .fastq.gz format
+# R2: File containing demultiplexed read 2 in .fastq.gz format, paired with R1
+# 
+SampleID	Code	Medium	Temp	Time	Rep	TagID	TagRead	P7	R1	R2
+CW01	YM9A	YPD	30C	180	A	Tag09	CAACACTTT	CWP1	CWP1_Tag09_Lall_R1.fastq.gz	CWP1_Tag09_Lall_R2.fastq.gz
+CW02	YC0A	YPD	25C	0	A	Tag12	CATCTGTAT	CWP1	CWP1_Tag12_Lall_R1.fastq.gz	CWP1_Tag12_Lall_R2.fastq.gz
+CW03	YC1A	YPD	25C	10	A	Tag18	CTGGTTCAT	CWP1	CWP1_Tag18_Lall_R1.fastq.gz	CWP1_Tag18_Lall_R2.fastq.gz
+CW04	YC2A	YPD	25C	30	A	Tag27	GGTACCGGT	CWP1	CWP1_Tag27_Lall_R1.fastq.gz	CWP1_Tag27_Lall_R2.fastq.gz
+CW05	YC3A	YPD	25C	60	A	Tag06	AGTTAGAGT	CWP1	CWP1_Tag06_Lall_R1.fastq.gz	CWP1_Tag06_Lall_R2.fastq.gz
+CW06	YC4A	YPD	25C	120	A	Tag25	GCGAGTTGT	CWP1	CWP1_Tag25_Lall_R1.fastq.gz	CWP1_Tag25_Lall_R2.fastq.gz
+CW07	YH1A	YPD	37C	10	A	Tag29	GTCCATATT	CWP1	CWP1_Tag29_Lall_R1.fastq.gz	CWP1_Tag29_Lall_R2.fastq.gz
+CW08	YH2A	YPD	37C	30	A	Tag17	CGTGGTAAT	CWP1	CWP1_Tag17_Lall_R1.fastq.gz	CWP1_Tag17_Lall_R2.fastq.gz
+CW09	YH3A	YPD	37C	60	A	Tag16	CGCCAGACT	CWP1	CWP1_Tag16_Lall_R1.fastq.gz	CWP1_Tag16_Lall_R2.fastq.gz
+CW10	YH4A	YPD	37C	120	A	Tag02	AAGTGCCGT	CWP1	CWP1_Tag02_Lall_R1.fastq.gz	CWP1_Tag02_Lall_R2.fastq.gz
+CW11	RC1A	RPMI+	25C	10	A	Tag05	AGAGGACCT	CWP1	CWP1_Tag05_Lall_R1.fastq.gz	CWP1_Tag05_Lall_R2.fastq.gz
+CW12	RC2A	RPMI+	25C	30	A	Tag04	ACAATCTCT	CWP1	CWP1_Tag04_Lall_R1.fastq.gz	CWP1_Tag04_Lall_R2.fastq.gz
+CW13	RC3A	RPMI+	25C	60	A	Tag14	CGACTTGGT	CWP1	CWP1_Tag14_Lall_R1.fastq.gz	CWP1_Tag14_Lall_R2.fastq.gz
+CW14	RC4A	RPMI+	25C	120	A	Tag08	ATGTTGTAT	CWP1	CWP1_Tag08_Lall_R1.fastq.gz	CWP1_Tag08_Lall_R2.fastq.gz
+CW15	RH1A	RPMI+	37C	10	A	Tag20	CTTGGGCCT	CWP1	CWP1_Tag20_Lall_R1.fastq.gz	CWP1_Tag20_Lall_R2.fastq.gz
+CW16	RH2A	RPMI+	37C	30	A	Tag32	GTTAGAAAT	CWP1	CWP1_Tag32_Lall_R1.fastq.gz	CWP1_Tag32_Lall_R2.fastq.gz
+CW17	RH3A	RPMI+	37C	60	A	Tag31	GTGGCTGCT	CWP1	CWP1_Tag31_Lall_R1.fastq.gz	CWP1_Tag31_Lall_R2.fastq.gz
+CW18	RH4A	RPMI+	37C	120	A	Tag15	CGATCCAGT	CWP1	CWP1_Tag15_Lall_R1.fastq.gz	CWP1_Tag15_Lall_R2.fastq.gz
+CW19	YM9B	YPD	30C	180	B	Tag13	CCGCGGGAT	CWP2	CWP2_Tag13_Lall_R1.fastq.gz	CWP2_Tag13_Lall_R2.fastq.gz
+CW20	YC0B	YPD	25C	0	B	Tag25	GCGAGTTGT	CWP2	CWP2_Tag25_Lall_R1.fastq.gz	CWP2_Tag25_Lall_R2.fastq.gz
+CW21	YC1B	YPD	25C	10	B	Tag29	GTCCATATT	CWP2	CWP2_Tag29_Lall_R1.fastq.gz	CWP2_Tag29_Lall_R2.fastq.gz
+CW22	YC2B	YPD	25C	30	B	Tag07	ATAATTCTT	CWP2	CWP2_Tag07_Lall_R1.fastq.gz	CWP2_Tag07_Lall_R2.fastq.gz
+CW23	YC3B	YPD	25C	60	B	Tag19	CTGTAGGGT	CWP2	CWP2_Tag19_Lall_R1.fastq.gz	CWP2_Tag19_Lall_R2.fastq.gz
+CW24	YC4B	YPD	25C	120	B	Tag04	ACAATCTCT	CWP2	CWP2_Tag04_Lall_R1.fastq.gz	CWP2_Tag04_Lall_R2.fastq.gz
+CW25	YH1B	YPD	37C	10	B	Tag30	GTCTCCCAT	CWP2	CWP2_Tag30_Lall_R1.fastq.gz	CWP2_Tag30_Lall_R2.fastq.gz
+CW26	YH2B	YPD	37C	30	B	Tag10	CAAGTGATT	CWP2	CWP2_Tag10_Lall_R1.fastq.gz	CWP2_Tag10_Lall_R2.fastq.gz
+CW27	YH3B	YPD	37C	60	B	Tag01	AAGACGGGT	CWP2	CWP2_Tag01_Lall_R1.fastq.gz	CWP2_Tag01_Lall_R2.fastq.gz
+CW28	YH4B	YPD	37C	120	B	Tag09	CAACACTTT	CWP2	CWP2_Tag09_Lall_R1.fastq.gz	CWP2_Tag09_Lall_R2.fastq.gz
+CW29	RC1B	RPMI+	25C	10	B	Tag20	CTTGGGCCT	CWP2	CWP2_Tag20_Lall_R1.fastq.gz	CWP2_Tag20_Lall_R2.fastq.gz
+CW30	RC2B	RPMI+	25C	30	B	Tag08	ATGTTGTAT	CWP2	CWP2_Tag08_Lall_R1.fastq.gz	CWP2_Tag08_Lall_R2.fastq.gz
+CW31	RC3B	RPMI+	25C	60	B	Tag31	GTGGCTGCT	CWP2	CWP2_Tag31_Lall_R1.fastq.gz	CWP2_Tag31_Lall_R2.fastq.gz
+CW32	RC4B	RPMI+	25C	120	B	Tag12	CATCTGTAT	CWP2	CWP2_Tag12_Lall_R1.fastq.gz	CWP2_Tag12_Lall_R2.fastq.gz
+CW33	RH1B	RPMI+	37C	10	B	Tag23	GCCCTCCGT	CWP2	CWP2_Tag23_Lall_R1.fastq.gz	CWP2_Tag23_Lall_R2.fastq.gz
+CW34	RH2B	RPMI+	37C	30	B	Tag27	GGTACCGGT	CWP2	CWP2_Tag27_Lall_R1.fastq.gz	CWP2_Tag27_Lall_R2.fastq.gz
+CW35	RH3B	RPMI+	37C	60	B	Tag14	CGACTTGGT	CWP2	CWP2_Tag14_Lall_R1.fastq.gz	CWP2_Tag14_Lall_R2.fastq.gz
+CW36	RH4B	RPMI+	37C	120	B	Tag11	CACGATGAT	CWP2	CWP2_Tag11_Lall_R1.fastq.gz	CWP2_Tag11_Lall_R2.fastq.gz
