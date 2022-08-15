@@ -203,7 +203,7 @@ process countAllmRNA {
     shell:
         """
         featureCounts -p \
-            -T ${params.num_processes} -s 1 \
+            -T ${params.num_processes} -s 2 \
             -t ${params.featuretype} -g ${params.featurename} -a ${mRNAgff} \
             -o counts.txt ${sampleid_bams.join(" ")} 
         """
