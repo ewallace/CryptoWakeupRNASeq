@@ -49,22 +49,23 @@ input_fq = Channel
 Run FastQC to produce a quality control report for the input data for every sample
 */
 
-process runFastQC{
+process runFastQCPaired{
     errorStrategy 'ignore'
     tag "${sample_id}"
-    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_fastqc.zip" }, mode: 'copy', overwrite: true
+    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip", "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
         tuple val(sample_id), path(sample_fq) from input_fq_qc
 
     output:
-        file("${sample_id}_fastqc/*.zip") into fastqc_files
+        file("${sample_id}_R1_fastqc/*.zip","${sample_id}_R2_fastqc/*.zip") into fastqc_files
 
     """
-    mkdir ${sample_id}_fastqc
-    fastqc --outdir ${sample_id}_fastqc \
+    mkdir ${sample_id}_R1_fastqc
+    fastqc --outdir ${sample_id}_R1_fastqc \
     -t ${params.num_processes} \
     ${sample_fq[0]}
-    fastqc --outdir ${sample_id}_fastqc \
+    mkdir ${sample_id}_R2_fastqc
+    fastqc --outdir ${sample_id}_R2_fastqc \
     -t ${params.num_processes} \
     ${sample_fq[1]}
     """
