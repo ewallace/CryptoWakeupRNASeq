@@ -42,8 +42,7 @@ Define the input read files in fastq.gz format
 */
 
 input_fq = Channel
-    .fromPath("${params.input_fq_dir}/*.fastq.gz")
-    .map { file -> tuple(file.simpleName, file) }
+    .fromFilePairs("${params.input_fq_dir}/*{_R1,_R2}.fastq.gz")
     .into { input_fq_qc; input_fq_cut}
 
 /*
@@ -55,7 +54,7 @@ process runFastQC{
     tag "${sample_id}"
     publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
-        set sample_id, file(sample_fq) from input_fq_qc
+        tuple val(sample_id), path(sample_fq) from input_fq_qc
 
     output:
         file("${sample_id}_fastqc/*.zip") into fastqc_files
@@ -71,13 +70,14 @@ process runFastQC{
 
 /*
 Cut sequencing adapters from 3' end of gene
+FIX THIS NEXT
 */
 
 process cutAdapters {
     errorStrategy 'ignore'
     tag "${sample_id}"
     input:
-        set sample_id, file(sample_fq) from input_fq_cut
+        tuple val(sample_id), path(sample_fq) from input_fq_cut
     output:
         tuple val(sample_id), file("trim.fq") into cut_fq
     shell:
