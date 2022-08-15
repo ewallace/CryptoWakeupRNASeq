@@ -63,7 +63,10 @@ process runFastQC{
     mkdir ${sample_id}_fastqc
     fastqc --outdir ${sample_id}_fastqc \
     -t ${params.num_processes} \
-    ${sample_fq}
+    ${sample_fq[0]}
+    fastqc --outdir ${sample_id}_fastqc \
+    -t ${params.num_processes} \
+    ${sample_fq[1]}
     """
 }
 
