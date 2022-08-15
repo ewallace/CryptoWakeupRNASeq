@@ -21,7 +21,7 @@ params.featuretype = 'mRNA' // in the mRNA gff file Type column, the feature cor
 params.featurename = 'Name' // in the mRNA gff file Attributes column, the field that contains the name of the feature to use in the counts file
 params.num_processes = 4 // number of processes to use for parallelising adapter trimming and alignment. Increasing this can speed up running the pipeline on larger computers
 params.adapters = 'AGATCGGAAGAGCGTCGTGTA' // is the sequencing adapter to remove, keep this as poly(A) for QuantSeq Fwd
-params.hisat2_other = '-k 2 --pen-cansplice 4 --pen-noncansplice 12 --min-intronlen 40  --max-intronlen 200' // other hisat2 parameters, these are specialised for aligning intron-poor yeast genomes, see hisat2 manual for details
+params.hisat2_other = '-k 2 --pen-cansplice 1 --pen-noncansplice 12 --min-intronlen 25  --max-intronlen 500' // other hisat2 parameters, these are specialised for aligning intron-poor yeast genomes, see hisat2 manual for details
 
 
 
