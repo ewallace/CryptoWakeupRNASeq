@@ -95,6 +95,7 @@ process cutAdapters {
 
 /*
 Align trimmed reads to the genome with hisat2
+TO DO: PAIRED END READS FOR HISAT2 NEXT
 */
 
 process alignHisat2 {
@@ -102,7 +103,7 @@ process alignHisat2 {
     tag "${sample_id}"
     publishDir "${params.output_dir}/${sample_id}", pattern: '*.hisat2_summary.txt', mode: 'copy', overwrite: true
     input:
-        set sample_id, file(sample_fq) from cut_fq
+        set sample_id, file(read1_fq), file(read2_fq) from cut_fq
         file(index_ht2_parts) from index_ht2_parts
     output:
         file("unaligned.fq") into unaligned_fq
@@ -113,9 +114,9 @@ process alignHisat2 {
         hisat2 --version
         hisat2 -p ${params.num_processes} \
             ${params.hisat2_other} \
-            --rna-strandness F --no-unal \
+            --rna-strandness RF --no-unal \
             --un unaligned.fq -x ${params.index_prefix} \
-            -S aligned.sam -U ${sample_fq} \
+            -S aligned.sam -1 ${read1_fq} -2 ${read2_fq} \
             --summary-file ${sample_id}.hisat2_summary.txt
         """
 }
