@@ -84,8 +84,8 @@ process cutAdapters {
     shell:
         """
         cutadapt --max-n 2 --discard-trimmed \
-            -a ${params.adapters};min_overlap=6 \
-            -A ${params.adapters};min_overlap=6 \
+            -a "${params.adapters};min_overlap=6" \
+            -A "${params.adapters};min_overlap=6" \
             -U 5 \
             -o trim_R1.fq -p trim_R2.fq \
             ${sample_fq[0]} ${sample_fq[1]} \
