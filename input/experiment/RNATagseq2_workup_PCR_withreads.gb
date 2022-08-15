@@ -1,4 +1,4 @@
-LOCUS       Exported                 238 bp DNA     linear   SYN 22-MAR-2017
+LOCUS       Exported                 238 bp DNA     linear   SYN 15-AUG-2022
 DEFINITION  synthetic linear DNA
 ACCESSION   .
 VERSION     .
@@ -8,7 +8,7 @@ SOURCE      synthetic DNA construct
 REFERENCE   1  (bases 1 to 238)
   AUTHORS   Drummond Lab
   TITLE     Direct Submission
-  JOURNAL   Exported Aug 11, 2022 from SnapGene Viewer 6.0.2
+  JOURNAL   Exported Aug 15, 2022 from SnapGene Viewer 6.0.2
             https://www.snapgene.com
 FEATURES             Location/Qualifiers
      source          1..238
@@ -23,12 +23,18 @@ FEATURES             Location/Qualifiers
                      /label=P7 index 1
      misc_feature    complement(45..71)
                      /label=Adaptor_3Tr3
+     misc_feature    67..141
+                     /label=R2
+                     /note="Read 2 from Illumina sequencing 75bp paired-end"
      misc_feature    67..71
                      /label=dedup
                      /note="deduplication random sequence"
      misc_feature    72..171
                      /label=Insert
                      /note="S.cerevisiae Pab1 100nt of orf"
+     misc_feature    complement(106..180)
+                     /label=R1
+                     /note="Read 1 from Illumina sequencing, 75bp paired-end"
      misc_feature    172..201
                      /label=Adaptor_T_01
                      /note="Tagged ligation adaptor T_01"
