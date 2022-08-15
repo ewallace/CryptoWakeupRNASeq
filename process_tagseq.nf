@@ -201,7 +201,10 @@ process countAllmRNA {
         file("counts.txt") into counts
     shell:
         """
-        featureCounts -T ${params.num_processes} -s 1 -t ${params.featuretype} -g ${params.featurename} -a ${mRNAgff} -o counts.txt ${sampleid_bams.join(" ")} 
+        featureCounts -p --countReadPairs \
+            -T ${params.num_processes} -s 1 \
+            -t ${params.featuretype} -g ${params.featurename} -a ${mRNAgff} \
+            -o counts.txt ${sampleid_bams.join(" ")} 
         """
 }
 
