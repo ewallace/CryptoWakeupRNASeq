@@ -1,0 +1,57 @@
+LOCUS       Exported                 238 bp DNA     linear   SYN 15-AUG-2022
+DEFINITION  synthetic linear DNA
+ACCESSION   .
+VERSION     .
+KEYWORDS    .
+SOURCE      synthetic DNA construct
+  ORGANISM  PCR product
+REFERENCE   1  (bases 1 to 238)
+  AUTHORS   Drummond Lab
+  TITLE     Direct Submission
+  JOURNAL   Exported Aug 15, 2022 from SnapGene Viewer 6.0.2
+            https://www.snapgene.com
+FEATURES             Location/Qualifiers
+     source          1..238
+                     /mol_type="other DNA"
+                     /organism="PCR product"
+     primer_bind     1..66
+                     /label=PB1_1
+     primer_bind     1..24
+                     /label=P7
+                     /note="Illumina PCR Primer 2.0 (P7)"
+     misc_feature    complement(25..32)
+                     /label=P7 index 1
+     misc_feature    complement(45..71)
+                     /label=Adaptor_3Tr3
+     misc_feature    67..141
+                     /label=R2
+                     /note="Read 2 from Illumina sequencing 75bp paired-end"
+     misc_feature    67..71
+                     /label=dedup
+                     /note="deduplication random sequence"
+     misc_feature    72..171
+                     /label=Insert
+                     /note="S.cerevisiae Pab1 100nt of orf"
+     misc_feature    complement(106..180)
+                     /label=R1
+                     /note="Read 1 from Illumina sequencing, 75bp paired-end"
+     misc_feature    172..201
+                     /label=Adaptor_T_01
+                     /note="Tagged ligation adaptor T_01"
+     misc_feature    complement(172)
+                     /label=T
+                     /note="This nt is always an T in the read."
+     misc_feature    complement(173..180)
+                     /label=Tag T_01
+                     /note="Inline barcode"
+     primer_bind     complement(181..238)
+                     /label=P5_RNATag
+     primer_bind     complement(195..238)
+                     /label=P5
+                     /note="Illumina PCR Primer 1.0 (P5)"
+ORIGIN
+        1 caagcagaag acggcatacg agatgagtgt gcgtgactgg agttcagacg tgtgctcttc
+       61 cgatctnnnn natggctgat attactgata agacagctga acaattggaa aacttgaata
+      121 ttcaagatga ccaaaagcaa gccgccactg gttcagaaag ccaatctgtt gaaagtgttg
+      181 agatcggaag agcgtcgtgt agggaaagag tgtagatctc ggtggtcgcc gtatcatt
+//

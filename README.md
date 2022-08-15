@@ -90,13 +90,13 @@ Remember that it is best to test & run carefully with subsampled data first, to 
 Point 
 
 - `params.input_fq_dir = 'EXPERIMENT_RENAME_fastq_subsample'` points to an input directory containing all of your fastq files 
-- `params.output_dir = 'results/counts_subsample'` points to the output directory where you would like all the outputs stored.
+- `params.output_dir = 'results/counts_test100000'` points to the output directory where you would like all the outputs stored.
 
 Then run the command:
 
 ```{bash }
 conda activate QS2022 
-nextflow run process_tagseq.nf -with-dag flowchart.png -with-report counts_subsample/nextflow_report.html
+nextflow run process_tagseq.nf -with-dag counts_test100000/flowchart.png -with-report counts_test100000/nextflow_report.html
 ```
 
 The options `-with-dag` and `-with-report` are just to tell you a little more about the output, they are not strictly needed in order to run.
@@ -106,6 +106,17 @@ Troubleshoot (installation, filepaths, etc) until everything works.
 
 At this point it's helpful to `git commit` the subsampled run data in `results/counts_subsample`, along with notes of anything you changed.
 
+### TO DO 2022-08-11
+
+We found that:
+- R2 is forward strand, R1 is negative strand, by checking featurecounts stranded numbers
+- R2 starts with a 5-nt random sequence (UMI)
+- there is very little adapter contamination in either R1 or R2, probably due to longer fragment length than read length
+
+To do next with cutadapt or flexbar:
+- read as actual paired-end reads
+- trim random nt from beginning of R2
+- check alignment statistics
 
 ## Run the pipeline on full-size data
 
