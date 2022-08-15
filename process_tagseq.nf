@@ -14,7 +14,7 @@ e.g. "params.featurename" is used in the featureCounts call.
 
 params.input_fq_dir = '/datastore/homes3/ewallac2/CryptoWakeup2017/TestReads100000' // input directory containing TEST 100000 read fastq files 
 params.output_dir = 'results/counts_test100000' // output directory where you would like all the outputs stored.
-params.index_dir = '/input/annotation/index' // directory with input annotation index in it.
+params.index_dir = 'input/annotation/index' // directory with input annotation index in it.
 params.index_prefix = 'CNA3_hisat2' // name of hisat2 index
 params.mRNAgff = 'input/annotation/H99.mRNAonly.2018-12-03.gff' // name of gff file describing mRNA locations
 params.featuretype = 'mRNA' // in the mRNA gff file Type column, the feature corresponding to mRNA that you want to count
