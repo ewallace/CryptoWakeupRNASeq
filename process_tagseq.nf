@@ -95,7 +95,6 @@ process cutAdapters {
 
 /*
 Align trimmed reads to the genome with hisat2
-TO DO: PAIRED END READS FOR HISAT2 NEXT
 */
 
 process alignHisat2 {
@@ -189,6 +188,8 @@ process renameBamSample {
 
 /*
 Run featureCounts to count aligned reads to genes for all processed samples
+Note: this is designed for featureCounts 2.0.1. 
+For versions 2.0.2 or later you may also have to specify --countReadPairs
 */
 
 process countAllmRNA {
@@ -201,7 +202,7 @@ process countAllmRNA {
         file("counts.txt") into counts
     shell:
         """
-        featureCounts -p --countReadPairs \
+        featureCounts -p \
             -T ${params.num_processes} -s 1 \
             -t ${params.featuretype} -g ${params.featurename} -a ${mRNAgff} \
             -o counts.txt ${sampleid_bams.join(" ")} 
