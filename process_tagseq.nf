@@ -47,34 +47,31 @@ input_fq = Channel
 
 /*
 Run FastQC to produce a quality control report for the input data for every sample
+NOTE: THIS IS NOT WORKING RIGHT
+It needs to be adjusted to separately QC the R1 and R2 files.
 */
 
-process runFastQCPaired{
+process runFastQC{
     errorStrategy 'ignore'
     tag "${sample_id}"
-    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip", "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
+    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
         tuple val(sample_id), path(sample_fq) from input_fq_qc
 
     output:
-        file("${sample_id}_R1_fastqc/*.zip","${sample_id}_R2_fastqc/*.zip") into fastqc_files
+        file("${sample_id}_fastqc/*.zip") into fastqc_files
 
     """
-    mkdir ${sample_id}_R1_fastqc
-    fastqc --outdir ${sample_id}_R1_fastqc \
+    mkdir ${sample_id}_fastqc
+    fastqc --outdir ${sample_id}_fastqc \
     -t ${params.num_processes} \
-    ${sample_fq[0]}
-    mkdir ${sample_id}_R2_fastqc
-    fastqc --outdir ${sample_id}_R2_fastqc \
-    -t ${params.num_processes} \
-    ${sample_fq[1]}
+    ${sample_fq}
     """
 }
 
 
 /*
 Cut sequencing adapters from 3' end of gene
-FIX THIS NEXT
 */
 
 process cutAdapters {
@@ -83,11 +80,16 @@ process cutAdapters {
     input:
         tuple val(sample_id), path(sample_fq) from input_fq_cut
     output:
-        tuple val(sample_id), file("trim.fq") into cut_fq
+        tuple val(sample_id), file("trim_R1.fq"), file("trim_R2.fq") into cut_fq
     shell:
         """
-        cutadapt --trim-n -O 1 -m 5 -a ${params.adapters} \
-            -o trim.fq ${sample_fq} -j ${params.num_processes}
+        cutadapt --max-n 2 --discard-trimmed \
+            -a ${params.adapters};min_overlap=6 \
+            -A ${params.adapters};min_overlap=6 \
+            -U 5 \
+            -o trim_R1.fq -p trim_R2.fq \
+            ${sample_fq[0]} ${sample_fq[1]} \
+            -j ${params.num_processes}
         """
 }
 
