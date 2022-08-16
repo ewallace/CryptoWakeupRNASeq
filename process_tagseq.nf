@@ -56,7 +56,7 @@ process runFastQC{
     publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip" }, mode: 'copy', overwrite: true
     publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
-        tuple val(sample_id), path(cutreads_fq) from input_fq_qc
+        tuple val(sample_id), path(reads_fq) from input_fq_qc
 
     output:
         file("${sample_id}_R1_fastqc/*.zip") into fastqc_files_R1
@@ -77,6 +77,8 @@ process runFastQC{
 
 /*
 Cut sequencing adapters from 3' end of gene
+Note: input fromFilePairs has structure [ sample_id, [ read1_fq, read2_fq ]]
+but output is just a tuple [ sample_id, cutread1_fq, cutread2_fq]
 */
 
 process cutAdapters {
@@ -107,7 +109,7 @@ process alignHisat2 {
     tag "${sample_id}"
     publishDir "${params.output_dir}/${sample_id}", pattern: '*.hisat2_summary.txt', mode: 'copy', overwrite: true
     input:
-        set sample_id, file(read1_fq), file(read2_fq) from cut_fq
+        set sample_id, file(read1_fq), file(read2_fq) from cutreads_fq
         file(index_ht2_parts) from index_ht2_parts
     output:
         file("unaligned.fq") into unaligned_fq
