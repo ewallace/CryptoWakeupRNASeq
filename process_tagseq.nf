@@ -12,8 +12,10 @@ To find where they are used, search the document for the name,
 e.g. "params.featurename" is used in the featureCounts call.
 */
 
-params.input_fq_dir = '/datastore/homes3/ewallac2/CryptoWakeup2017/TestReads100000' // input directory containing TEST 100000 read fastq files 
-params.output_dir = 'results/counts_test100000' // output directory where you would like all the outputs stored.
+// TEST params.input_fq_dir = '/datastore/homes3/ewallac2/CryptoWakeup2017/TestReads100000' // input directory containing TEST 100000 read fastq files 
+// TESTparams.output_dir = 'results/counts_test100000' // output directory where you would like all the outputs stored.
+params.input_fq_dir = '/datastore/homes3/ewallac2/CryptoWakeup2017/SplitCatSelect' // input directory containing TEST 100000 read fastq files 
+params.output_dir = 'results/counts' // output directory where you would like all the outputs stored.
 params.index_dir = 'input/annotation/index' // directory with input annotation index in it.
 params.index_prefix = 'CNA3_hisat2' // name of hisat2 index
 params.mRNAgff = 'input/annotation/H99.10p.aATGcorrected.2018-12-03.gff3' // name of gff file describing feature locations
