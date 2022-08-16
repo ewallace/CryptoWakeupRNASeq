@@ -106,17 +106,25 @@ Troubleshoot (installation, filepaths, etc) until everything works.
 
 At this point it's helpful to `git commit` the subsampled run data in `results/counts_subsample`, along with notes of anything you changed.
 
-### TO DO 2022-08-11
+
+### Progress up to 2022-08-15
 
 We found that:
 - R2 is forward strand, R1 is negative strand, by checking featurecounts stranded numbers
 - R2 starts with a 5-nt random sequence (UMI)
 - there is very little adapter contamination in either R1 or R2, probably due to longer fragment length than read length
+- confirmed this with read structure for RNATagSeq, as shown in `/input/experiment/RNATagseq2_workup_PCR_withreads.dna` and `.gb`
+- cutadapt reads as paired-end and trims 5nt from R2
+- hisat2 reads as paired-end and adjusted the parameters for lower splice penalty
+- featureCounts reads as paired-end sam and assigns to genes on correct strand
 
-To do next with cutadapt or flexbar:
-- read as actual paired-end reads
-- trim random nt from beginning of R2
+### TO DO 2022-08-15
+
+- make fastqc do separate analysis of each paired read
+  - probably split the channel? 
+- probably rename sample_fq to reads_fq
 - check alignment statistics
+- move to full data
 
 ## Run the pipeline on full-size data
 
