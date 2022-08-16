@@ -56,7 +56,7 @@ process runFastQC{
     publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip" }, mode: 'copy', overwrite: true
     publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
-        tuple val(sample_id), path(sample_fq) from input_fq_qc
+        tuple val(sample_id), path(cutreads_fq) from input_fq_qc
 
     output:
         file("${sample_id}_R1_fastqc/*.zip") into fastqc_files_R1
@@ -66,11 +66,11 @@ process runFastQC{
     mkdir ${sample_id}_R1_fastqc
     fastqc --outdir ${sample_id}_R1_fastqc \
         -t ${params.num_processes} \
-        ${sample_fq[0]}
+        ${reads_fq[0]}
     mkdir ${sample_id}_R2_fastqc
     fastqc --outdir ${sample_id}_R2_fastqc \
         -t ${params.num_processes} \
-        ${sample_fq[1]}
+        ${reads_fq[1]}
     """
 }
 
@@ -83,17 +83,17 @@ process cutAdapters {
     errorStrategy 'ignore'
     tag "${sample_id}"
     input:
-        tuple val(sample_id), path(sample_fq) from input_fq_cut
+        tuple val(sample_id), path(reads_fq) from input_fq_cut
     output:
-        tuple val(sample_id), file("trim_R1.fq"), file("trim_R2.fq") into cut_fq
+        tuple val(sample_id), file("cut_R1.fq"), file("cut_R2.fq") into cutreads_fq
     shell:
         """
         cutadapt --max-n 2 --discard-trimmed \
             -a "${params.adapters};min_overlap=6" \
             -A "${params.adapters};min_overlap=6" \
             -U 5 \
-            -o trim_R1.fq -p trim_R2.fq \
-            ${sample_fq[0]} ${sample_fq[1]} \
+            -o cut_R1.fq -p cut_R2.fq \
+            ${reads_fq[0]} ${reads_fq[1]} \
             -j ${params.num_processes}
         """
 }
