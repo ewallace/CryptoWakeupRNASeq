@@ -54,7 +54,7 @@ It needs to be adjusted to separately QC the R1 and R2 files.
 process runFastQC{
     errorStrategy 'ignore'
     tag "${sample_id}"
-    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_fastqc.zip" }, mode: 'copy', overwrite: true
+    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip", "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
         tuple val(sample_id), path(sample_fq) from input_fq_qc
 
