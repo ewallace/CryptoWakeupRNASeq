@@ -59,13 +59,18 @@ process runFastQC{
         tuple val(sample_id), path(sample_fq) from input_fq_qc
 
     output:
-        file("${sample_id}_fastqc/*.zip") into fastqc_files
+        file("${sample_id}_R1_fastqc/*.zip") into fastqc_files_R1
+        file("${sample_id}_R2_fastqc/*.zip") into fastqc_files_R2
 
     """
-    mkdir ${sample_id}_fastqc
-    fastqc --outdir ${sample_id}_fastqc \
-    -t ${params.num_processes} \
-    ${sample_fq}
+    mkdir ${sample_id}_R1_fastqc
+    fastqc --outdir ${sample_id}_R1_fastqc \
+        -t ${params.num_processes} \
+        ${sample_fq[0]}
+    mkdir ${sample_id}_R2_fastqc
+    fastqc --outdir ${sample_id}_R2_fastqc \
+        -t ${params.num_processes} \
+        ${sample_fq[1]}
     """
 }
 
@@ -218,7 +223,8 @@ process runMultiQC{
     tag { "multiQC" }
     publishDir "${params.output_dir}", mode: 'copy', overwrite: true
     input:
-        file ('*') from fastqc_files.collect()
+        file ('*') from fastqc_files_R1.collect()
+        file ('*') from fastqc_files_R2.collect()
         file ('*') from alignment_logs.collect()
     output:
         file('multiqc_report.html')
