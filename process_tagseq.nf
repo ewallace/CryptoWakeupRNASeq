@@ -1,7 +1,7 @@
 
 /*
 RNATagSeq paired-end analysis pipeline, written in nextflow DSL 1
-IN PROCESS of adaptation from a quantseqfwd pipeline
+Adapted from a quantseqfwd pipeline in https://github.com/ewallace/QuantSeqFwd_template, August 2022
 */
 nextflow.enable.dsl = 1 
 
@@ -47,14 +47,14 @@ input_fq = Channel
 
 /*
 Run FastQC to produce a quality control report for the input data for every sample
-NOTE: THIS IS NOT WORKING RIGHT
-It needs to be adjusted to separately QC the R1 and R2 files.
+Separate QC report for read 1 and read 2
 */
 
 process runFastQC{
     errorStrategy 'ignore'
     tag "${sample_id}"
-    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip", "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
+    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R1_fastqc.zip" }, mode: 'copy', overwrite: true
+    publishDir "${params.output_dir}/${sample_id}", saveAs: { "${sample_id}_R2_fastqc.zip" }, mode: 'copy', overwrite: true
     input:
         tuple val(sample_id), path(sample_fq) from input_fq_qc
 
