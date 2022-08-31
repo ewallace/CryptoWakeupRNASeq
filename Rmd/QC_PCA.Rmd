@@ -1,7 +1,7 @@
 ---
-title: "Quality control and PCA Template EDIT ME"
+title: "Quality control and PCA of CryptoWakeup RNAseq"
 author: "Edward Wallace"
-date: "13/06/2022"
+date: "2022-08-31"
 output: 
   html_document:
     toc: true
@@ -26,24 +26,31 @@ count_header_columns <- c("Geneid", "Chr", "Start",
                           "End", "Strand", "Length")
 
 # unwanted string in filename; may need to be edited
-unwanted_filename_string <- "_L001_R1_001_aln.bam"
+unwanted_filename_string_bam <- "Lall_aln.bam"
 
 ```
 
-# Summary - EDIT TO DESCRIBE YOUR DATA
+# Summary
 
-Quality control of RNA-seq data after read processing.
+Quality control of CryptoWakeup RNA-seq data after read processing.
 
 This analysis does:
 
-- Scatter plot of counts showing log-scale correlations
-- PCA plot showing how samples are similar to one another
+- Heatmap of counts showing log-scale correlations.
+- PCA plot showing how samples are similar to one another.
 
-It concludes that... EDIT
+It concludes that :
+
+- biological replicates are reproducible.
+- principal components capture meaningful factors: growth time, medium and temperature.
+- the variance structure is complex, probably due to the complex multifactorial design.
+
 
 # Load and organise raw count data
 
 ## Load the raw counts
+
+This is the output of featurecounts, one integer per gene.
 
 ```{r load_counts}
 counts_raw <- 
@@ -54,13 +61,30 @@ counts_raw
 
 ## Load the sample sheet
 
+The sample sheet describes the sample information, filenames, as well as sequence and tag names relevant to library prep.
+
 ```{r load_samplesheet}
 sample_sheet <- 
   here::here("input", "experiment",
-             "samplesheet_RENAME.txt") %>%
-  readr::read_tsv(comment = "#") 
+             "CryptoWakeUpSampleSheetPlusTagsAndRawFilenames.txt") %>%
+  readr::read_tsv(comment = "#") %>%
+  dplyr::mutate(BamFileName = paste(P7, 
+                                    TagID, 
+                                    unwanted_filename_string_bam, 
+                                    sep = "_")
+  )
 
 sample_sheet 
+```
+
+Next make the abbreviated sample sheet containing only the experimental design information, which is summarized in the "Code" variable that uniquely identifies each sample.
+
+```{r samplesheet_abbrev}
+sample_sheet_abbreviated <- 
+  sample_sheet %>%
+  dplyr::select(SampleID, Code, Medium, Temp, Time, Rep)
+
+Codelevels = sample_sheet$Code
 ```
 
 ## Organise the counts using the sample sheet
@@ -68,9 +92,8 @@ sample_sheet
 ```{r organise_counts}
 counts_all <- 
   counts_raw %>%
-  dplyr::select(sample_sheet$Filename)  %>%
-  dplyr::rename_with(stringr::str_remove,
-                     pattern = unwanted_filename_string)%>%
+  dplyr::select(sample_sheet$BamFileName)  %>%
+  magrittr::set_names(sample_sheet$Code) %>%
   magrittr::set_rownames(counts_raw$Geneid)
 
 counts_all
@@ -78,7 +101,8 @@ counts_all
 
 # Check reproducibility by paired scatter plot in log10-plus-1-space
 
-_Note: This is set to `eval=FALSE` as it can run very slowly for large datasets._ 
+_Note: This is set to `eval=FALSE` as runs very slowly for large datasets._ 
+_Tried running it and it was very hard to interpret._
 
 ```{r paired_scatter, fig.height=16, fig.width=16, eval = FALSE}
 counts_all %>%
@@ -87,18 +111,45 @@ counts_all %>%
   GGally::ggpairs()
 ```
 
+
+# Check reproducibility by correlation heatmap in log10-plus-1 space
+
+```{r paired_heatmap, fig.height=8, fig.width=10}
+cordf <- 
+  counts_all %>%
+  magrittr::add(1) %>%
+  log10() %>%
+  cor() %>%
+  as.data.frame() %>%
+  mutate(Sample1 = names(.)) %>%
+  pivot_longer(cols = -Sample1, 
+               names_to = "Sample2", 
+               values_to = "R") %>%
+  mutate(Sample1 = factor(Sample1, levels = Codelevels),
+         Sample2 = factor(Sample2, levels = rev(Codelevels)))
+
+ggplot(data = cordf, aes(x = Sample1, y = Sample2, fill = R)) +
+  geom_tile() +
+  coord_equal() +
+  scale_fill_gradient(low = "white", high = "darkblue") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+This is a complex experiment with 36 samples so the plot is hard to interpret.
+The biological replicates (first 18 samples rep A, next 18 rep B) are well-correlated.
+The visible 4x4 squares on the diagonal indicate that later timepoints in the same media and temperature are quite well correlated with each other, better than with timepoint 1 (10min).
+
+
 # Normalize counts by regularized log (rlog) with DESeq2
 
 The [rlog function from DESeq2](https://rdrr.io/bioc/DESeq2/man/rlog.html) "transforms the count data to the log2 scale in a way which minimizes differences between samples for rows with small counts, and which normalizes with respect to library size."
 
 ## Construct DESeq dataset object
 
-EDIT: the `design` formula may need to be edited.
-
 ```{r dds_counts_all}
 dds_all <- DESeqDataSetFromMatrix(countData = counts_all,
-                                  colData = sample_sheet,
-                                  design = ~ .)
+                                  colData = sample_sheet_abbreviated,
+                                  design = ~ Code)
 ```
 
 # Do the rlog transformation
@@ -154,16 +205,21 @@ plot_percentvar_rlog <-
 plot_percentvar_rlog
 ```
 
+Here about 32% var in PC1, 27% in PC2, then several more components between 10% and 2% of variance.
+
 ## Plot PC1 vs PC2 with default values
 
-EDIT: the colour and other aesthetics may need to be edited to highlight features of the data
+EDIT: the colour and other aesthetics may need to be further edited to highlight features of the data
 
-```{r plot_PC12_default, fig.height=6, fig.width=6}
+```{r plot_PC12_default, fig.height=4, fig.width=7}
 ggplot(data = pcdf_rlog,
-       aes(colour = SampleID)
+       aes(colour = interaction(Medium,Temp), shape = factor(Time))
        ) +
   geom_point(aes(x = PC1, y = PC2)) 
 ```
+
+Overall this argues that the biological replicates are clustering together in PC space.
+
 
 ## Plot PC1 vs PC2, 3, 4, also with default values
 
@@ -171,8 +227,8 @@ ggplot(data = pcdf_rlog,
 # This could be wraped in a function
 pc_baseplot <- 
   ggplot(data = pcdf_rlog,
-         aes(colour = SampleID, 
-             label = SampleID)
+         aes(colour = interaction(Medium,Temp), 
+             label = Code)
   ) + 
   geom_hline(yintercept = 0, size = 0.5, colour = "grey80") +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey80") +
@@ -191,3 +247,16 @@ plot_grid(pcplot_12, NULL, pcplot_legend,
           pcplot_13, pcplot_23, NULL, 
           pcplot_14, pcplot_24, pcplot_34)
 ```
+
+
+- PC1 vs PC2 Stationary phase (YC0A/B) cluster distinctly, and the 10min samples (with "1" in them) are all similar to each other but different from later timepoints.
+- PC2 separates RPMI from YPD samples at later timepoints, looking at the left side of the PC1/PC2 plot.
+- PC3 mostly separates temperature, with 25C (cold) at the top at 37C (hot) at the bottom.
+- PC4 separates stationary phase (YC0A/B) from everything else.
+- A better choice of colours and display might make this clearer.
+
+
+## TO DO
+
+- Calculate transcripts per million with length normalisation, probably adding to this script.
+- Plot TPMs for select genes, probably in a different script.
