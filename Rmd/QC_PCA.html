@@ -198,7 +198,11 @@ pre code {
 <li><a href="#plot-pca-percentage-variance-explained-to-find-how-many-pcs-to-pay-attention-to.">Plot PCA percentage variance explained to find how many PCs to pay attention to.</a></li>
 <li><a href="#plot-pc1-vs-pc2-with-default-values">Plot PC1 vs PC2 with default values</a></li>
 <li><a href="#plot-pc1-vs-pc2-3-4-also-with-default-values">Plot PC1 vs PC2, 3, 4, also with default values</a></li>
-<li><a href="#to-do">TO DO</a></li>
+</ul></li>
+<li><a href="#write-out-counts-and-tpms-length-normalized-counts-by-sample-code">Write out counts and TPMs (length-normalized counts) by sample code</a>
+<ul>
+<li><a href="#write-out-counts-with-sample-codes-as-column-names">Write out counts with sample codes as column names</a></li>
+<li><a href="#calculate-gene-by-gene-estimates-in-transcripts-per-million">Calculate gene-by-gene estimates in transcripts per million</a></li>
 </ul></li>
 </ul>
 </div>
@@ -225,19 +229,12 @@ pre code {
 <p>This is the output of featurecounts, one integer per gene.</p>
 <pre class="r"><code>counts_raw &lt;- 
   here::here(&quot;results&quot;, &quot;counts&quot;, &quot;counts.txt&quot;) %&gt;%
-  readr::read_tsv(comment = &quot;#&quot;)</code></pre>
-<pre><code>## Rows: 8194 Columns: 44
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;\t&quot;
-## chr  (5): Geneid, Chr, Start, End, Strand
-## dbl (39): Length, CWP2_Tag14_Lall_aln.bam, CWP1_Tag12_Lall_aln.bam, CWP2_Tag...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>counts_raw</code></pre>
+  readr::read_tsv(comment = &quot;#&quot;,
+                  col_types = &quot;ccccciiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii&quot;)
+counts_raw</code></pre>
 <pre><code>## # A tibble: 8,194 × 44
 ##    Geneid     Chr    Start End   Strand Length CWP2_Tag14_Lall… CWP1_Tag12_Lall…
-##    &lt;chr&gt;      &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##    &lt;chr&gt;      &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;int&gt;            &lt;int&gt;            &lt;int&gt;
 ##  1 CNAG_00002 1;1;1… 1273… 1290… +;+;+…    773                6                1
 ##  2 CNAG_00003 1;1;1… 1402… 1430… -;-;-…   1752               37               36
 ##  3 CNAG_00004 1;1;1… 1642… 1645… -;-;-…   2547              105               65
@@ -248,13 +245,13 @@ pre code {
 ##  8 CNAG_00009 1;1;1… 3308… 3374… +;+;+…   1473              127               14
 ##  9 CNAG_00010 1;1;1… 3574… 3627… -;-;-…   3449              433               47
 ## 10 CNAG_00011 1;1;1… 4023… 4049… +;+;+…   1241               64               40
-## # … with 8,184 more rows, and 36 more variables: CWP2_Tag08_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP2_Tag09_Lall_aln.bam &lt;dbl&gt;, CWP1_Unassigned_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP2_Tag23_Lall_aln.bam &lt;dbl&gt;, CWP1_Tag17_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP2_Tag27_Lall_aln.bam &lt;dbl&gt;, CWP2_Tag11_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP1_Tag27_Lall_aln.bam &lt;dbl&gt;, CWP1_Tag09_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP2_Tag20_Lall_aln.bam &lt;dbl&gt;, CWP1_Tag18_Lall_aln.bam &lt;dbl&gt;,
-## #   CWP1_Tag05_Lall_aln.bam &lt;dbl&gt;, CWP2_Tag10_Lall_aln.bam &lt;dbl&gt;, …</code></pre>
+## # … with 8,184 more rows, and 36 more variables: CWP2_Tag08_Lall_aln.bam &lt;int&gt;,
+## #   CWP2_Tag09_Lall_aln.bam &lt;int&gt;, CWP1_Unassigned_Lall_aln.bam &lt;int&gt;,
+## #   CWP2_Tag23_Lall_aln.bam &lt;int&gt;, CWP1_Tag17_Lall_aln.bam &lt;int&gt;,
+## #   CWP2_Tag27_Lall_aln.bam &lt;int&gt;, CWP2_Tag11_Lall_aln.bam &lt;int&gt;,
+## #   CWP1_Tag27_Lall_aln.bam &lt;int&gt;, CWP1_Tag09_Lall_aln.bam &lt;int&gt;,
+## #   CWP2_Tag20_Lall_aln.bam &lt;int&gt;, CWP1_Tag18_Lall_aln.bam &lt;int&gt;,
+## #   CWP1_Tag05_Lall_aln.bam &lt;int&gt;, CWP2_Tag10_Lall_aln.bam &lt;int&gt;, …</code></pre>
 </div>
 <div id="load-the-sample-sheet" class="section level2">
 <h2>Load the sample sheet</h2>
@@ -309,7 +306,7 @@ Codelevels = sample_sheet$Code</code></pre>
 <pre class="r"><code>counts_all</code></pre>
 <pre><code>## # A tibble: 8,194 × 36
 ##     YM9A  YC0A  YC1A  YC2A  YC3A  YC4A  YH1A  YH2A  YH3A  YH4A  RC1A  RC2A  RC3A
-##  * &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  * &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;
 ##  1    16     1     0    31    13    12    12     3    35   130     9    60    48
 ##  2    11    36    21    45    80   104    17    11    53   107    42    18   100
 ##  3   131    65    94   120   367   349   182    45   233   453   115   315   389
@@ -320,11 +317,11 @@ Codelevels = sample_sheet$Code</code></pre>
 ##  8    42    14    13    71   219   428    51   119   195   375     9    80    78
 ##  9   239    47   520  1204  2017  1562  1401   571   965  1744   603   685   915
 ## 10    11    40    10    31    48    86    61    33    63   186    58   105    27
-## # … with 8,184 more rows, and 23 more variables: RC4A &lt;dbl&gt;, RH1A &lt;dbl&gt;,
-## #   RH2A &lt;dbl&gt;, RH3A &lt;dbl&gt;, RH4A &lt;dbl&gt;, YM9B &lt;dbl&gt;, YC0B &lt;dbl&gt;, YC1B &lt;dbl&gt;,
-## #   YC2B &lt;dbl&gt;, YC3B &lt;dbl&gt;, YC4B &lt;dbl&gt;, YH1B &lt;dbl&gt;, YH2B &lt;dbl&gt;, YH3B &lt;dbl&gt;,
-## #   YH4B &lt;dbl&gt;, RC1B &lt;dbl&gt;, RC2B &lt;dbl&gt;, RC3B &lt;dbl&gt;, RC4B &lt;dbl&gt;, RH1B &lt;dbl&gt;,
-## #   RH2B &lt;dbl&gt;, RH3B &lt;dbl&gt;, RH4B &lt;dbl&gt;</code></pre>
+## # … with 8,184 more rows, and 23 more variables: RC4A &lt;int&gt;, RH1A &lt;int&gt;,
+## #   RH2A &lt;int&gt;, RH3A &lt;int&gt;, RH4A &lt;int&gt;, YM9B &lt;int&gt;, YC0B &lt;int&gt;, YC1B &lt;dbl&gt;,
+## #   YC2B &lt;int&gt;, YC3B &lt;dbl&gt;, YC4B &lt;int&gt;, YH1B &lt;int&gt;, YH2B &lt;int&gt;, YH3B &lt;int&gt;,
+## #   YH4B &lt;int&gt;, RC1B &lt;int&gt;, RC2B &lt;int&gt;, RC3B &lt;int&gt;, RC4B &lt;int&gt;, RH1B &lt;int&gt;,
+## #   RH2B &lt;int&gt;, RH3B &lt;int&gt;, RH4B &lt;int&gt;</code></pre>
 </div>
 </div>
 <div id="check-reproducibility-by-paired-scatter-plot-in-log10-plus-1-space" class="section level1">
@@ -524,12 +521,69 @@ plot_grid(pcplot_12, NULL, pcplot_legend,
 <li>A better choice of colours and display might make this clearer.</li>
 </ul>
 </div>
-<div id="to-do" class="section level2">
-<h2>TO DO</h2>
-<ul>
-<li>Calculate transcripts per million with length normalisation, probably adding to this script.</li>
-<li>Plot TPMs for select genes, probably in a different script.</li>
-</ul>
+</div>
+<div id="write-out-counts-and-tpms-length-normalized-counts-by-sample-code" class="section level1">
+<h1>Write out counts and TPMs (length-normalized counts) by sample code</h1>
+<div id="write-out-counts-with-sample-codes-as-column-names" class="section level2">
+<h2>Write out counts with sample codes as column names</h2>
+<pre class="r"><code>bind_cols(
+  counts_raw %&gt;% 
+    dplyr::select(Gene = Geneid, Length = Length),
+  counts_raw %&gt;%
+    dplyr::select(sample_sheet$BamFileName)  %&gt;%
+    magrittr::set_names(sample_sheet$Code) 
+) %&gt;%
+  readr::write_tsv(
+    file = here::here(&quot;results&quot;, &quot;summaries&quot;, &quot;counts_bysamplecode.txt&quot;))</code></pre>
+</div>
+<div id="calculate-gene-by-gene-estimates-in-transcripts-per-million" class="section level2">
+<h2>Calculate gene-by-gene estimates in transcripts per million</h2>
+<pre class="r"><code>calculate_tpms &lt;- function(counts, effLengths) {
+  norm_counts &lt;- counts / effLengths
+  norm_counts / sum(norm_counts) * 1e6
+}
+
+# fragment length = 100 is a rough approximation from PE75 reads.
+fragment_length &lt;- 100
+
+tpms_values &lt;- 
+  counts_raw %&gt;%
+  dplyr::select(sample_sheet$BamFileName)  %&gt;%
+  magrittr::set_names(sample_sheet$Code) %&gt;%
+  dplyr::mutate(
+    across(.fns = calculate_tpms, 
+           effLengths = pmin(counts_raw$Length - fragment_length, 1))
+  )
+
+tpms_all &lt;- bind_cols( counts_raw %&gt;% 
+                         dplyr::select(Gene = Geneid, Length),
+                       tpms_values)
+tpms_all</code></pre>
+<pre><code>## # A tibble: 8,194 × 38
+##    Gene   Length   YM9A    YC0A   YC1A   YC2A   YC3A   YC4A   YH1A   YH2A   YH3A
+##    &lt;chr&gt;   &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 CNAG_…    773   8.44   0.990   0     10.6    2.34   1.95   2.49   1.58   8.09
+##  2 CNAG_…   1752   5.81  35.6    11.7   15.3   14.4   16.9    3.53   5.78  12.2 
+##  3 CNAG_…   2547  69.1   64.3    52.4   40.9   66.0   56.6   37.8   23.6   53.8 
+##  4 CNAG_…   2106   9.50   5.94    0      3.41  14.2   25.6    8.10  37.8   77.2 
+##  5 CNAG_…   1091 106.    76.2   106.    67.5   54.1   46.2   77.1   88.7   62.6 
+##  6 CNAG_…   1969  56.5   84.1    40.7   63.4   57.3   63.4   70.0   63.5   81.1 
+##  7 CNAG_…   3648 100.   131.     70.3  126.    72.4  118.   107.   147.   171.  
+##  8 CNAG_…   1473  22.2   13.9     7.25  24.2   39.4   69.4   10.6   62.5   45.1 
+##  9 CNAG_…   3449 126.    46.5   290.   410.   362.   253.   291.   300.   223.  
+## 10 CNAG_…   1241   5.81  39.6     5.58  10.6    8.63  13.9   12.7   17.3   14.6 
+## # … with 8,184 more rows, and 27 more variables: YH4A &lt;dbl&gt;, RC1A &lt;dbl&gt;,
+## #   RC2A &lt;dbl&gt;, RC3A &lt;dbl&gt;, RC4A &lt;dbl&gt;, RH1A &lt;dbl&gt;, RH2A &lt;dbl&gt;, RH3A &lt;dbl&gt;,
+## #   RH4A &lt;dbl&gt;, YM9B &lt;dbl&gt;, YC0B &lt;dbl&gt;, YC1B &lt;dbl&gt;, YC2B &lt;dbl&gt;, YC3B &lt;dbl&gt;,
+## #   YC4B &lt;dbl&gt;, YH1B &lt;dbl&gt;, YH2B &lt;dbl&gt;, YH3B &lt;dbl&gt;, YH4B &lt;dbl&gt;, RC1B &lt;dbl&gt;,
+## #   RC2B &lt;dbl&gt;, RC3B &lt;dbl&gt;, RC4B &lt;dbl&gt;, RH1B &lt;dbl&gt;, RH2B &lt;dbl&gt;, RH3B &lt;dbl&gt;,
+## #   RH4B &lt;dbl&gt;</code></pre>
+<pre class="r"><code>tpms_all %&gt;%
+  dplyr::mutate(
+    across(where(is.double), round, digits = 3)
+  ) %&gt;%
+  readr::write_tsv(
+    file = here::here(&quot;results&quot;, &quot;summaries&quot;, &quot;tpms_bysamplecode.txt&quot;))</code></pre>
 </div>
 </div>
 

@@ -55,7 +55,8 @@ This is the output of featurecounts, one integer per gene.
 ```{r load_counts}
 counts_raw <- 
   here::here("results", "counts", "counts.txt") %>%
-  readr::read_tsv(comment = "#")
+  readr::read_tsv(comment = "#",
+                  col_types = "ccccciiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
 counts_raw
 ```
 
@@ -255,8 +256,54 @@ plot_grid(pcplot_12, NULL, pcplot_legend,
 - PC4 separates stationary phase (YC0A/B) from everything else.
 - A better choice of colours and display might make this clearer.
 
+# Write out counts and TPMs (length-normalized counts) by sample code
 
-## TO DO
+## Write out counts with sample codes as column names
 
-- Calculate transcripts per million with length normalisation, probably adding to this script.
-- Plot TPMs for select genes, probably in a different script.
+```{r write_counts_codes}
+bind_cols(
+  counts_raw %>% 
+    dplyr::select(Gene = Geneid, Length = Length),
+  counts_raw %>%
+    dplyr::select(sample_sheet$BamFileName)  %>%
+    magrittr::set_names(sample_sheet$Code) 
+) %>%
+  readr::write_tsv(
+    file = here::here("results", "summaries", "counts_bysamplecode.txt"))
+```
+
+## Calculate gene-by-gene estimates in transcripts per million
+
+```{r calculate_tpms}
+calculate_tpms <- function(counts, effLengths) {
+  norm_counts <- counts / effLengths
+  norm_counts / sum(norm_counts) * 1e6
+}
+
+# fragment length = 100 is a rough approximation from PE75 reads.
+fragment_length <- 100
+
+tpms_values <- 
+  counts_raw %>%
+  dplyr::select(sample_sheet$BamFileName)  %>%
+  magrittr::set_names(sample_sheet$Code) %>%
+  dplyr::mutate(
+    across(.fns = calculate_tpms, 
+           effLengths = pmin(counts_raw$Length - fragment_length, 1))
+  )
+
+tpms_all <- bind_cols( counts_raw %>% 
+                         dplyr::select(Gene = Geneid, Length),
+                       tpms_values)
+tpms_all
+```
+
+```{r write_tpms_codes}
+tpms_all %>%
+  dplyr::mutate(
+    across(where(is.double), round, digits = 3)
+  ) %>%
+  readr::write_tsv(
+    file = here::here("results", "summaries", "tpms_bysamplecode.txt"))
+```
+
