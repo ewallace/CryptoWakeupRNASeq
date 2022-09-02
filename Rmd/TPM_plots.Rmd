@@ -79,27 +79,11 @@ plotmygenes_dotted <- function(genelist = c("CNAG_00121", "CNAG_00483"),
 }
 
 scale_colour_MediumTemp <- 
-  # purpleorange
-  scale_colour_manual(values = c("RPMI+ 37C" = "#5e3c99",
-                                 "RPMI+ 25C" = "#b2abd2",
-                                 "YPD 37C" = "#e66101",
-                                 "YPD 25C" = "#fdb863"))
-
-scale_colour_MediumTemp <- 
-  # pinkgreen
-  scale_colour_manual(values = c("RPMI+ 37C" = "#d01c8b",
-                                 "RPMI+ 25C" = "#f1b6da",
-                                 "YPD 37C" = "#b8e186",
-                                 "YPD 25C" = "#4dac26"))
-
-scale_colour_MediumTemp <- 
-  # purplegreen
-  scale_colour_manual(values = c("RPMI+ 37C" = "#7b3294",
-                                 "RPMI+ 25C" = "#c2a5cf",
-                                 "YPD 37C" = "#008837",
-                                 "YPD 25C" = "#a6dba0"))
-
-
+  scale_colour_manual(# purpleorange
+    values = c("RPMI+ 37C" = "#5e3c99",
+               "RPMI+ 25C" = "#b2abd2",
+               "YPD 37C" = "#e66101",
+               "YPD 25C" = "#fdb863"))
 
 plotmygenes <- function(genelist = c("CNAG_00121", "CNAG_00483"),
                         bigtable = tpms_long_CH) {
@@ -125,7 +109,6 @@ plotmygenes(c("CNAG_01551","CNAG_06762"))
 
 # TO DO
 
-- pick a colour scheme
 - pick genes of interest to highlight
 - make figure panels for figure 1 of paper
 - update the interactive dataviz?

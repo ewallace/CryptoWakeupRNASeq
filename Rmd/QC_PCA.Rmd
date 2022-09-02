@@ -83,7 +83,10 @@ Next make the abbreviated sample sheet containing only the experimental design i
 ```{r samplesheet_abbrev}
 sample_sheet_abbreviated <- 
   sample_sheet %>%
-  dplyr::select(SampleID, Code, Medium, Temp, Time, Rep)
+  dplyr::select(SampleID, Code, Medium, Temp, Time, Rep)  %>%
+    dplyr::mutate(MedTempTime = stringr::str_sub(Code,end = 3L),
+                  MediumTemp = paste(Medium,Temp) %>%
+                    replace(which(sample_sheet$Time == 0), "YPD 5days"))
 
 Codelevels = sample_sheet$Code
 ```
@@ -214,9 +217,16 @@ EDIT: the colour and other aesthetics may need to be further edited to highlight
 
 ```{r plot_PC12_default, fig.height=4, fig.width=7}
 ggplot(data = pcdf_rlog,
-       aes(colour = interaction(Medium,Temp), shape = factor(Time))
+       aes(colour = MediumTemp, shape = factor(Time))
        ) +
-  geom_point(aes(x = PC1, y = PC2)) 
+  geom_point(aes(x = PC1, y = PC2)) +
+  scale_colour_manual(# purpleorange
+    values = c("RPMI+ 37C" = "#5e3c99",
+               "RPMI+ 25C" = "#b2abd2",
+               "YPD 37C" = "#e66101",
+               "YPD 25C" = "#fdb863",
+               "YPD 30C" = "darkgreen",
+               "YPD 5days" = "grey10"))
 ```
 
 Overall this argues that the biological replicates are clustering together in PC space.
@@ -227,23 +237,20 @@ Overall this argues that the biological replicates are clustering together in PC
 ```{r plot_PC1234_text, fig.height=8, fig.width=8}
 # This could be wraped in a function
 pc_baseplot <- 
-  ggplot(data = pcdf_rlog %>%
-           dplyr::mutate(MedTempTime = stringr::str_sub(Code,end = 3L),
-                         MediumTemp = paste(Medium,Temp) %>%
-                           replace(which(pcdf_rlog$Time == 0), "YPD 5days")),
+  ggplot(data = pcdf_rlog,
          aes(colour = MediumTemp, 
              label = Time)
   ) + 
   geom_hline(yintercept = 0, size = 0.5, colour = "grey80") +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey80") +
   theme(legend.position = "none") +
-  scale_colour_manual(# purplegreen
-    values = c("RPMI+ 37C" = "#7b3294",
-               "RPMI+ 25C" = "#c2a5cf",
-               "YPD 37C" = "#008837",
-               "YPD 25C" = "#a6dba0",
-               "YPD 30C" = "goldenrod",
-               "YPD 5days" = "darkblue")) +
+  scale_colour_manual(# purpleorange
+    values = c("RPMI+ 37C" = "#5e3c99",
+               "RPMI+ 25C" = "#b2abd2",
+               "YPD 37C" = "#e66101",
+               "YPD 25C" = "#fdb863",
+               "YPD 30C" = "darkgreen",
+               "YPD 5days" = "grey10")) +
   coord_cartesian(clip = "off")
 
 pcplot_12 <- pc_baseplot + geom_text(aes(x = PC1, y = PC2), key_glyph = "point")
