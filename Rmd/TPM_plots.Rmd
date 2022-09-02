@@ -1,0 +1,131 @@
+---
+title: "Plot TPMs in CryptoWakeup RNAseq"
+author: "Edward Wallace"
+date: "2022-09-02"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(here)
+
+theme_set(theme_cowplot(font_size = 12) +
+    theme(# panel.grid.major = element_line(colour = "grey80", size = 0.5),
+          strip.background = element_blank())
+    )
+
+```
+
+# Summary
+
+Plot mRNA abundance in transcripts per million (TPM) in CryptoWakeup experiment.
+
+## Load data
+
+```{r load_tpms_samplesheet}
+tpms_all <- 
+  here::here("results", "summaries", "tpms_bysamplecode.txt") %>%
+  read_tsv(col_types = "cidddddddddddddddddddddddddddddddddddd")
+
+sample_sheet <- 
+  here::here("input", "experiment",
+             "CryptoWakeUpSampleSheetPlusTagsAndRawFilenames.txt") %>%
+  readr::read_tsv(comment = "#") %>%
+  dplyr::transmute(SampleID = as_factor(SampleID), 
+                   Code = as_factor(Code),
+                   Medium = as_factor(Medium),
+                   Temp = factor(Temp, levels = c("25C", "30C", "37C")),
+                   Time = as.integer(Time),
+                   Rep = as_factor(Rep),
+                   MediumTemp = paste(Medium,Temp))
+
+tpms_long_CH <- 
+  tpms_all %>%
+  dplyr::select(-Length) %>%
+  tidyr::pivot_longer(cols = - Gene, names_to = "Code", values_to = "TPM") %>%
+  dplyr::left_join(sample_sheet, by = "Code") %>%
+  dplyr::filter(Temp %in% c("25C", "37C"))
+
+tpms_long_CH
+```
+
+## Define plotting functions
+
+```{r plotmygenes, fig.width = 6, fig.height = 3}
+plotmygenes_dotted <- function(genelist = c("CNAG_00121", "CNAG_00483"),
+                        bigtable = tpms_long_CH) {
+    ggplot(data=filter(bigtable, Gene %in% genelist)) + 
+        stat_summary(aes(x = Time,
+                         y = TPM, 
+                         colour = Medium,
+                         linetype = Temp,
+                      group = interaction(Gene,Medium,Temp)),
+                  size=1, geom = "line", fun = mean) +
+        scale_y_log10("mRNA abundance\n(transcripts per million)") +
+        scale_x_continuous("minutes post-inoculation",
+                           breaks = c(0, 10, 30, 60, 120)) +
+        scale_colour_manual(values = c("RPMI+" = "darkred",
+                                     "YPD" = "darkgoldenrod")) + 
+        scale_linetype_manual(values=c("25C" = "solid", "37C" = "dotted")) +
+        facet_wrap(~Gene) +
+        theme_cowplot(font_size = 16, line_size = 0.5) + 
+        theme(strip.background=element_blank(),
+              panel.grid.major.y = element_line(colour = "grey90")) +
+        panel_border()
+}
+
+scale_colour_MediumTemp <- 
+  # purpleorange
+  scale_colour_manual(values = c("RPMI+ 37C" = "#5e3c99",
+                                 "RPMI+ 25C" = "#b2abd2",
+                                 "YPD 37C" = "#e66101",
+                                 "YPD 25C" = "#fdb863"))
+
+scale_colour_MediumTemp <- 
+  # pinkgreen
+  scale_colour_manual(values = c("RPMI+ 37C" = "#d01c8b",
+                                 "RPMI+ 25C" = "#f1b6da",
+                                 "YPD 37C" = "#b8e186",
+                                 "YPD 25C" = "#4dac26"))
+
+scale_colour_MediumTemp <- 
+  # purplegreen
+  scale_colour_manual(values = c("RPMI+ 37C" = "#7b3294",
+                                 "RPMI+ 25C" = "#c2a5cf",
+                                 "YPD 37C" = "#008837",
+                                 "YPD 25C" = "#a6dba0"))
+
+
+
+plotmygenes <- function(genelist = c("CNAG_00121", "CNAG_00483"),
+                        bigtable = tpms_long_CH) {
+    ggplot(data=filter(bigtable, Gene %in% genelist)) + 
+        stat_summary(aes(x = Time,
+                         y = TPM, 
+                         colour = MediumTemp,
+                      group = interaction(Gene,Medium,Temp)),
+                  size=1, geom = "line", fun = mean) +
+        scale_y_log10("mRNA abundance\n(transcripts per million)") +
+        scale_x_continuous("minutes post-inoculation",
+                           breaks = c(0, 10, 30, 60, 120)) +
+        scale_colour_MediumTemp +
+        facet_wrap(~Gene) +
+        theme_cowplot(font_size = 14, line_size = 0.5) + 
+        theme(strip.background=element_blank(),
+              panel.grid.major.y = element_line(colour = "grey90")) +
+        panel_border()
+}
+
+plotmygenes(c("CNAG_01551","CNAG_06762"))
+```
+
+# TO DO
+
+- pick a colour scheme
+- pick genes of interest to highlight
+- make figure panels for figure 1 of paper
+- update the interactive dataviz?
