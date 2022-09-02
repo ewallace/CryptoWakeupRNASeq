@@ -227,15 +227,26 @@ Overall this argues that the biological replicates are clustering together in PC
 ```{r plot_PC1234_text, fig.height=8, fig.width=8}
 # This could be wraped in a function
 pc_baseplot <- 
-  ggplot(data = pcdf_rlog,
-         aes(colour = interaction(Medium,Temp), 
-             label = Code)
+  ggplot(data = pcdf_rlog %>%
+           dplyr::mutate(MedTempTime = stringr::str_sub(Code,end = 3L),
+                         MediumTemp = paste(Medium,Temp) %>%
+                           replace(which(pcdf_rlog$Time == 0), "YPD 5days")),
+         aes(colour = MediumTemp, 
+             label = Time)
   ) + 
   geom_hline(yintercept = 0, size = 0.5, colour = "grey80") +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey80") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  scale_colour_manual(# purplegreen
+    values = c("RPMI+ 37C" = "#7b3294",
+               "RPMI+ 25C" = "#c2a5cf",
+               "YPD 37C" = "#008837",
+               "YPD 25C" = "#a6dba0",
+               "YPD 30C" = "goldenrod",
+               "YPD 5days" = "darkblue")) +
+  coord_cartesian(clip = "off")
 
-pcplot_12 <- pc_baseplot + geom_text(aes(x = PC1, y = PC2))
+pcplot_12 <- pc_baseplot + geom_text(aes(x = PC1, y = PC2), key_glyph = "point")
 pcplot_13 <- pc_baseplot + geom_text(aes(x = PC1, y = PC3))
 pcplot_14 <- pc_baseplot + geom_text(aes(x = PC1, y = PC4))
 pcplot_23 <- pc_baseplot + geom_text(aes(x = PC2, y = PC3))
