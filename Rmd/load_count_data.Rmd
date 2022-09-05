@@ -57,3 +57,13 @@ sample_sheet <-
 
 sample_sheet 
 ```
+
+## Load H99 Gene information
+
+```{r load_gene_info}
+gene_info_df <- 
+  here::here("input", "annotation",
+             "H99_geneinfo_FungiDB59.txt") %>%
+  readr::read_tsv(comment = "#")  %>% 
+  dplyr::rename(gene = GeneID, geneName = GeneName)
+```

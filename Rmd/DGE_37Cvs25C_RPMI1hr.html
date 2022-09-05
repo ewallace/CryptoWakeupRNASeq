@@ -177,11 +177,15 @@ pre code {
 
 <div id="TOC">
 <ul>
-<li><a href="#summary">Summary</a></li>
+<li><a href="#summary">Summary</a>
+<ul>
+<li><a href="#load-count-data-from-shared-script-load_count_data.rmd">Load count data from shared script load_count_data.Rmd</a></li>
+</ul></li>
 <li><a href="#load-and-organise-count-data">Load and organise count data</a>
 <ul>
 <li><a href="#load-the-organised-counts">Load the organised counts</a></li>
 <li><a href="#load-the-sample-sheet">Load the sample sheet</a></li>
+<li><a href="#load-h99-gene-information">Load H99 Gene information</a></li>
 </ul></li>
 <li><a href="#deseq-on-a-subset-of-data-only-rpmi-serum-at-1hr">DESeq on a subset of data, only RPMI + Serum at 1hr</a>
 <ul>
@@ -201,6 +205,9 @@ pre code {
 <li>EDIT</li>
 </ul>
 <p>It concludes that… EDIT</p>
+<div id="load-count-data-from-shared-script-load_count_data.rmd" class="section level2">
+<h2>Load count data from shared script load_count_data.Rmd</h2>
+</div>
 </div>
 <div id="load-and-organise-count-data" class="section level1">
 <h1>Load and organise count data</h1>
@@ -271,6 +278,21 @@ pre code {
 ## 10 CW10     YH4A  YPD    37C     120 A     YPD 37C   
 ## # … with 26 more rows</code></pre>
 </div>
+<div id="load-h99-gene-information" class="section level2">
+<h2>Load H99 Gene information</h2>
+<pre class="r"><code>gene_info_df &lt;- 
+  here::here(&quot;input&quot;, &quot;annotation&quot;,
+             &quot;H99_geneinfo_FungiDB59.txt&quot;) %&gt;%
+  readr::read_tsv(comment = &quot;#&quot;)  %&gt;% 
+  dplyr::rename(gene = GeneID, geneName = GeneName)</code></pre>
+<pre><code>## Rows: 8338 Columns: 6
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;\t&quot;
+## chr (6): GeneID, ProductDescription, GeneName, CuratedGOComponents, CuratedG...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
 </div>
 <div id="deseq-on-a-subset-of-data-only-rpmi-serum-at-1hr" class="section level1">
 <h1>DESeq on a subset of data, only RPMI + Serum at 1hr</h1>
@@ -324,7 +346,14 @@ dds_37Cvs25C_RPMI1hr &lt;-
 <pre class="r"><code>deseq_df_37Cvs25C_RPMI1hr &lt;- 
   biobroom::tidy.DESeqDataSet(dds_37Cvs25C_RPMI1hr) %&gt;%
   dplyr::filter(term == &quot;Temp_37C_vs_25C&quot;) %&gt;%
-  select(gene, baseMean, log2FC = estimate, stderror, padj = p.adjusted)</code></pre>
+  dplyr::left_join(gene_info_df,
+                   by = &quot;gene&quot;) %&gt;% 
+  dplyr::select(gene, 
+                geneName, 
+                baseMean, 
+                log2FC = estimate, 
+                stderror,
+                padj = p.adjusted)</code></pre>
 <pre><code>## Warning: `tbl_df()` was deprecated in dplyr 1.0.0.
 ## Please use `tibble::as_tibble()` instead.
 ## This warning is displayed once every 8 hours.
@@ -338,29 +367,29 @@ DEGdf_37C_up2x_FDR5 &lt;-
                 log2FC &gt; 1, padj &lt; 0.05) %&gt;%
   dplyr::arrange(desc(log2FC))
 print(DEGdf_37C_up2x_FDR5, n = 20)</code></pre>
-<pre><code>## # A tibble: 264 × 5
-##    gene       baseMean log2FC stderror     padj
-##    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-##  1 CNAG_01980    22.1    8.50    1.84  2.79e- 4
-##  2 CNAG_13113    20.0    8.35    1.93  9.02e- 4
-##  3 CNAG_10018    12.0    7.62    2.12  1.02e- 2
-##  4 CNAG_12006     9.71   7.32    2.25  2.75e- 2
-##  5 CNAG_00851     9.10   7.23    2.29  3.35e- 2
-##  6 CNAG_10048     8.70   7.16    2.29  3.56e- 2
-##  7 CNAG_03728    16.6    5.63    1.58  1.17e- 2
-##  8 CNAG_03833    17.3    5.60    1.65  1.93e- 2
-##  9 CNAG_03142  1169.     5.51    0.524 3.00e-22
-## 10 CNAG_13175    22.3    5.42    1.46  7.53e- 3
-## 11 CNAG_07765   253.     5.24    0.765 3.61e- 9
-## 12 CNAG_04903   499.     5.18    0.686 3.74e-11
-## 13 CNAG_07939   346.     5.06    0.644 4.11e-12
-## 14 CNAG_12206    23.3    4.99    1.38  9.91e- 3
-## 15 CNAG_01102   884.     4.96    0.619 1.29e-12
-## 16 CNAG_01052   409.     4.74    1.46  2.76e- 2
-## 17 CNAG_06109   709.     4.70    0.723 2.77e- 8
-## 18 CNAG_04970    20.2    4.66    1.41  2.34e- 2
-## 19 CNAG_02005    28.6    4.44    1.37  2.76e- 2
-## 20 CNAG_01031   355.     4.35    0.786 4.74e- 6
+<pre><code>## # A tibble: 264 × 6
+##    gene       geneName baseMean log2FC stderror     padj
+##    &lt;chr&gt;      &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1 CNAG_01980 &lt;NA&gt;        22.1    8.50    1.84  2.79e- 4
+##  2 CNAG_13113 &lt;NA&gt;        20.0    8.35    1.93  9.02e- 4
+##  3 CNAG_10018 &lt;NA&gt;        12.0    7.62    2.12  1.02e- 2
+##  4 CNAG_12006 &lt;NA&gt;         9.71   7.32    2.25  2.75e- 2
+##  5 CNAG_00851 &lt;NA&gt;         9.10   7.23    2.29  3.35e- 2
+##  6 CNAG_10048 &lt;NA&gt;         8.70   7.16    2.29  3.56e- 2
+##  7 CNAG_03728 &lt;NA&gt;        16.6    5.63    1.58  1.17e- 2
+##  8 CNAG_03833 &lt;NA&gt;        17.3    5.60    1.65  1.93e- 2
+##  9 CNAG_03142 &lt;NA&gt;      1169.     5.51    0.524 3.00e-22
+## 10 CNAG_13175 &lt;NA&gt;        22.3    5.42    1.46  7.53e- 3
+## 11 CNAG_07765 &lt;NA&gt;       253.     5.24    0.765 3.61e- 9
+## 12 CNAG_04903 &lt;NA&gt;       499.     5.18    0.686 3.74e-11
+## 13 CNAG_07939 &lt;NA&gt;       346.     5.06    0.644 4.11e-12
+## 14 CNAG_12206 &lt;NA&gt;        23.3    4.99    1.38  9.91e- 3
+## 15 CNAG_01102 &lt;NA&gt;       884.     4.96    0.619 1.29e-12
+## 16 CNAG_01052 &lt;NA&gt;       409.     4.74    1.46  2.76e- 2
+## 17 CNAG_06109 &lt;NA&gt;       709.     4.70    0.723 2.77e- 8
+## 18 CNAG_04970 &lt;NA&gt;        20.2    4.66    1.41  2.34e- 2
+## 19 CNAG_02005 &lt;NA&gt;        28.6    4.44    1.37  2.76e- 2
+## 20 CNAG_01031 &lt;NA&gt;       355.     4.35    0.786 4.74e- 6
 ## # … with 244 more rows</code></pre>
 </div>
 <div id="list-degs-most-down-in-37c-vs-25c" class="section level2">
@@ -371,29 +400,29 @@ DEGdf_37C_down2x_FDR5 &lt;-
                 log2FC &lt; -1, padj &lt; 0.05) %&gt;%
   dplyr::arrange(log2FC)
 print(DEGdf_37C_down2x_FDR5, n = 20)</code></pre>
-<pre><code>## # A tibble: 162 × 5
-##    gene       baseMean log2FC stderror     padj
-##    &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-##  1 CNAG_03912     21.9  -7.34    1.84  2.88e- 3
-##  2 CNAG_12564     20.7  -7.26    1.85  3.72e- 3
-##  3 CNAG_01965     19.5  -7.17    1.94  7.55e- 3
-##  4 CNAG_05972     18.0  -7.06    1.95  9.58e- 3
-##  5 CNAG_00726     14.7  -6.77    2.14  3.32e- 2
-##  6 CNAG_03275     12.9  -6.57    2.05  2.98e- 2
-##  7 CNAG_05461     11.6  -6.42    2.12  4.43e- 2
-##  8 CNAG_03454    105.   -5.15    0.782 1.81e- 8
-##  9 CNAG_07949     20.3  -4.85    1.55  3.55e- 2
-## 10 CNAG_12322     29.5  -4.80    1.31  8.41e- 3
-## 11 CNAG_03280     21.7  -4.73    1.51  3.55e- 2
-## 12 CNAG_01500     65.1  -4.68    1.10  1.14e- 3
-## 13 CNAG_03465   1310.   -4.65    0.373 7.94e-32
-## 14 CNAG_05299     26.2  -4.38    1.35  2.84e- 2
-## 15 CNAG_01540     27.5  -4.30    1.33  2.91e- 2
-## 16 CNAG_06963    655.   -4.19    0.428 3.40e-19
-## 17 CNAG_03426     30.4  -4.12    1.23  2.09e- 2
-## 18 CNAG_05169     37.7  -3.96    1.06  7.05e- 3
-## 19 CNAG_00749    283.   -3.94    0.527 5.90e-11
-## 20 CNAG_01794    102.   -3.92    0.708 4.74e- 6
+<pre><code>## # A tibble: 162 × 6
+##    gene       geneName baseMean log2FC stderror     padj
+##    &lt;chr&gt;      &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1 CNAG_03912 LPI5         21.9  -7.34    1.84  2.88e- 3
+##  2 CNAG_12564 &lt;NA&gt;         20.7  -7.26    1.85  3.72e- 3
+##  3 CNAG_01965 &lt;NA&gt;         19.5  -7.17    1.94  7.55e- 3
+##  4 CNAG_05972 &lt;NA&gt;         18.0  -7.06    1.95  9.58e- 3
+##  5 CNAG_00726 &lt;NA&gt;         14.7  -6.77    2.14  3.32e- 2
+##  6 CNAG_03275 &lt;NA&gt;         12.9  -6.57    2.05  2.98e- 2
+##  7 CNAG_05461 &lt;NA&gt;         11.6  -6.42    2.12  4.43e- 2
+##  8 CNAG_03454 &lt;NA&gt;        105.   -5.15    0.782 1.81e- 8
+##  9 CNAG_07949 &lt;NA&gt;         20.3  -4.85    1.55  3.55e- 2
+## 10 CNAG_12322 &lt;NA&gt;         29.5  -4.80    1.31  8.41e- 3
+## 11 CNAG_03280 &lt;NA&gt;         21.7  -4.73    1.51  3.55e- 2
+## 12 CNAG_01500 &lt;NA&gt;         65.1  -4.68    1.10  1.14e- 3
+## 13 CNAG_03465 LAC1       1310.   -4.65    0.373 7.94e-32
+## 14 CNAG_05299 &lt;NA&gt;         26.2  -4.38    1.35  2.84e- 2
+## 15 CNAG_01540 &lt;NA&gt;         27.5  -4.30    1.33  2.91e- 2
+## 16 CNAG_06963 &lt;NA&gt;        655.   -4.19    0.428 3.40e-19
+## 17 CNAG_03426 GMT2         30.4  -4.12    1.23  2.09e- 2
+## 18 CNAG_05169 &lt;NA&gt;         37.7  -3.96    1.06  7.05e- 3
+## 19 CNAG_00749 &lt;NA&gt;        283.   -3.94    0.527 5.90e-11
+## 20 CNAG_01794 &lt;NA&gt;        102.   -3.92    0.708 4.74e- 6
 ## # … with 142 more rows</code></pre>
 </div>
 <div id="volcano-plot-of-degs" class="section level2">

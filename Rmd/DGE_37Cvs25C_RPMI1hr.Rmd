@@ -18,8 +18,9 @@ This analysis does:
 
 It concludes that... EDIT
 
+## Load count data from shared script load_count_data.Rmd
+
 ```{r call_load_count_data, child = "load_count_data.Rmd"}
-# Load count data from shared script load_count_data.Rmd
 ```
 
 # DESeq on a subset of data, only RPMI + Serum at 1hr
@@ -49,7 +50,14 @@ resultsNames(dds_37Cvs25C_RPMI1hr)
 deseq_df_37Cvs25C_RPMI1hr <- 
   biobroom::tidy.DESeqDataSet(dds_37Cvs25C_RPMI1hr) %>%
   dplyr::filter(term == "Temp_37C_vs_25C") %>%
-  select(gene, baseMean, log2FC = estimate, stderror, padj = p.adjusted)
+  dplyr::left_join(gene_info_df,
+                   by = "gene") %>% 
+  dplyr::select(gene, 
+                geneName, 
+                baseMean, 
+                log2FC = estimate, 
+                stderror,
+                padj = p.adjusted)
 ```
 
 ## List DEGs most UP in 37C vs 25C
