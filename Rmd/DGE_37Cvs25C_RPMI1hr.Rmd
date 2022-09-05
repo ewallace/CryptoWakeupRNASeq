@@ -1,0 +1,124 @@
+---
+title: "Differential Gene Expression of 37C vs 25C in RPMI + Serum samples"
+author: "Edward Wallace"
+date: "2022-09-05"
+output: 
+  html_document:
+    toc: true
+---
+
+
+# Summary
+
+Differential Gene Expression of 37C vs 25C in RPMI + Serum samples using DESeq2
+
+This analysis does:
+
+- EDIT
+
+It concludes that... EDIT
+
+```{r call_load_count_data, child = "load_count_data.Rmd"}
+# Load count data from shared script load_count_data.Rmd
+```
+
+# DESeq on a subset of data, only RPMI + Serum at 1hr
+
+```{r subset_37Cvs25C_RPMI1hr, fig.height=8, fig.width=8}
+sample_sheet_37Cvs25C_RPMI1hr <-
+  dplyr::filter(sample_sheet,
+                Time == 60, Medium == "RPMI+")
+
+dds_37Cvs25C_RPMI1hr <- 
+  DESeqDataSetFromMatrix(countData = counts_all %>%
+                           dplyr::select(sample_sheet_37Cvs25C_RPMI1hr$Code) %>%
+                           magrittr::set_rownames(counts_all$Gene),
+                         colData = sample_sheet_37Cvs25C_RPMI1hr,
+                         design = ~ Temp) %>%
+  DESeq()
+
+dds_37Cvs25C_RPMI1hr
+```
+```{r results_37Cvs25C_RPMI1hr}
+results(dds_37Cvs25C_RPMI1hr)
+
+resultsNames(dds_37Cvs25C_RPMI1hr)
+```
+
+```{r deseq_df_37Cvs25C_RPMI1hr}
+deseq_df_37Cvs25C_RPMI1hr <- 
+  biobroom::tidy.DESeqDataSet(dds_37Cvs25C_RPMI1hr) %>%
+  dplyr::filter(term == "Temp_37C_vs_25C") %>%
+  select(gene, baseMean, log2FC = estimate, stderror, padj = p.adjusted)
+```
+
+## List DEGs most UP in 37C vs 25C
+
+We are to 1.5x changes with 5% FDR here.
+
+
+```{r DEGs_37C_up, fig.width = 6, fig.height = 3}
+# Make data frames of DEGs up and down, arranged by log2FC
+DEGdf_37C_up2x_FDR5 <- 
+  dplyr::filter(deseq_df_37Cvs25C_RPMI1hr,
+                log2FC > 1, padj < 0.05) %>%
+  dplyr::arrange(desc(log2FC))
+print(DEGdf_37C_up2x_FDR5, n = 20)
+```
+
+## List DEGs most DOWN in 37C vs 25C
+
+
+```{r DEGs_37C_down, fig.width = 6, fig.height = 3}
+# Make data frames of DEGs up and down, arranged by log2FC
+DEGdf_37C_down2x_FDR5 <- 
+  dplyr::filter(deseq_df_37Cvs25C_RPMI1hr,
+                log2FC < -1, padj < 0.05) %>%
+  dplyr::arrange(log2FC)
+print(DEGdf_37C_down2x_FDR5, n = 20)
+```
+
+## Volcano plot of DEGs
+
+```{r volcano_37Cvs25C_RPMI1hr, fig.width = 6, fig.height = 3}
+volcano_37Cvs25C_RPMI1hr <- 
+  ggplot(data = deseq_df_37Cvs25C_RPMI1hr,
+         aes(x = log2FC, y = -log10(padj)) ) +
+  geom_point(size = 0.5, colour = "grey50") +
+  geom_point(data = DEGdf_37C_up2x_FDR5,
+             size = 1, colour = "darkblue") +
+  geom_point(data = DEGdf_37C_down2x_FDR5,
+             size = 1, colour = "darkred") +
+  scale_y_continuous("-log10(p)",
+                     limits = c(0,10), expand = c(0,0),
+                     oob=scales::squish) +
+  scale_x_continuous("log2 fold-change, 37C vs 25C, RPMI 1hr",
+                     breaks = -5:5,
+                     limits = c(-4,4), expand = c(0.01,0.01),
+                     oob = scales::squish) +
+  coord_cartesian(clip = "off") 
+volcano_37Cvs25C_RPMI1hr
+```
+
+## Write outputs to files
+
+```{r write_DEGs}
+deseq_df_37Cvs25C_RPMI1hr %>%
+  dplyr::mutate(
+    across(c(baseMean, log2FC, stderror), round, digits = 3)
+  ) %>%
+  dplyr::mutate(padj = signif(padj, digits = 4)) %>%
+  write_tsv(file = here::here("results", "DEGs",
+                              "deseq_df_37Cvs25C_RPMI1hr.txt"))
+
+DEGdf_37C_up2x_FDR5 %>%
+  dplyr::pull(gene) %>%
+  write_lines(file = here::here("results", "DEGs",
+                            "deglist_37Cvs25C_RPMI1hr_up2x_FDR5.txt"))
+
+DEGdf_37C_down2x_FDR5 %>%
+  dplyr::pull(gene) %>%
+  write_lines(file = here::here("results", "DEGs",
+                            "deglist_37Cvs25C_RPMI1hr_down2x_FDR5.txt"))
+```
+

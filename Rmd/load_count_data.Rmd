@@ -1,0 +1,59 @@
+---
+title: "load_count_data"
+author: "Edward Wallace"
+date: "2022-09-05"
+output: html_document
+---
+
+# Load and organise count data
+
+`load_count_data.Rmd` is just to load and organise the raw count data in R, as well as loading libraries for data analysis.
+Other scripts can just run this one instead of duplicating code, especially scripts for differential gene expression analysis.
+
+Note: the current version of this runs *after* `QC_PCA.Rmd`, which does the organisation.
+This just loads the organised counts from the file `results/summaries/counts_bysamplecode.txt`.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(GGally)
+library(here)
+library(DESeq2)
+library(biobroom)
+
+theme_set(theme_cowplot(font_size = 12) +
+    theme(# panel.grid.major = element_line(colour = "grey80", size = 0.5),
+          strip.background = element_blank())
+    )
+```
+
+
+## Load the organised counts
+
+```{r load_counts}
+counts_all <- 
+  here::here("results", "summaries", "counts_bysamplecode.txt") %>%
+  readr::read_tsv(comment = "#",
+                  col_types = "ciiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")   %>%
+  magrittr::set_rownames(.$Gene)
+counts_all
+```
+
+## Load the sample sheet
+
+```{r load_samplesheet}
+sample_sheet <- 
+  here::here("input", "experiment",
+             "CryptoWakeUpSampleSheetPlusTagsAndRawFilenames.txt") %>%
+  readr::read_tsv(comment = "#") %>%
+  dplyr::transmute(SampleID = as_factor(SampleID), 
+                   Code = as_factor(Code),
+                   Medium = as_factor(Medium),
+                   Temp = factor(Temp, levels = c("25C", "30C", "37C")),
+                   Time = as.integer(Time),
+                   Rep = as_factor(Rep),
+                   MediumTemp = paste(Medium,Temp))
+
+sample_sheet 
+```
