@@ -1,0 +1,155 @@
+---
+title: "Differential Gene Expression of RPMI vs YPD in 37C 1hr"
+author: "Edward Wallace"
+date: "2022-09-05"
+output: 
+  html_document:
+    toc: true
+---
+
+
+# Summary
+
+Differential Gene Expression of RPMI vs YPD in 37C 1hr samples using DESeq2.
+
+The medium was RPMI + 10% FBS, abbreviated here to RPMI without subsequently mentioning the serum.
+
+This analysis does:
+
+- EDIT
+
+It concludes that... EDIT
+
+## Load count data from shared script load_count_data.Rmd
+
+```{r call_load_count_data, child = "load_count_data.Rmd"}
+```
+
+# DESeq on a subset of data, only YPD at 1hr
+
+```{r subset_RPMIvsYPD_37C1hr, fig.height=8, fig.width=8}
+sample_sheet_RPMIvsYPD_37C1hr <-
+  dplyr::filter(sample_sheet,
+                Time == 60, Temp == "37C") %>%
+  # rename "RPMI+" to "RPMI" to avoid character substitutions in DESeq2
+  dplyr::mutate(Medium = forcats::fct_recode(Medium, RPMI = "RPMI+"))
+
+dds_RPMIvsYPD_37C1hr <- 
+  DESeqDataSetFromMatrix(countData = counts_all %>%
+                           dplyr::select(sample_sheet_RPMIvsYPD_37C1hr$Code) %>%
+                           magrittr::set_rownames(counts_all$Gene),
+                         colData = sample_sheet_RPMIvsYPD_37C1hr,
+                         design = ~ Medium) %>%
+  DESeq()
+
+dds_RPMIvsYPD_37C1hr
+```
+```{r results_RPMIvsYPD_37C1hr}
+results(dds_RPMIvsYPD_37C1hr)
+
+resultsNames(dds_RPMIvsYPD_37C1hr)
+```
+
+```{r deseq_df_RPMIvsYPD_37C1hr}
+deseq_df_RPMIvsYPD_37C1hr <- 
+  biobroom::tidy.DESeqDataSet(dds_RPMIvsYPD_37C1hr) %>%
+  dplyr::filter(term == "Medium_RPMI_vs_YPD") %>%
+  dplyr::left_join(gene_info_df,
+                   by = "gene") %>% 
+  dplyr::select(gene, 
+                geneName, 
+                baseMean, 
+                log2FC = estimate, 
+                stderror,
+                padj = p.adjusted)
+```
+
+## List DEGs most UP in RPMI+ vs YPD
+
+We cut off at 2x changes with 5% FDR here.
+
+
+```{r DEGs_RPMI_up, fig.width = 6, fig.height = 3}
+# Make data frames of DEGs up and down, arranged by log2FC
+DEGdf_RPMI_up2x_FDR5 <- 
+  dplyr::filter(deseq_df_RPMIvsYPD_37C1hr,
+                log2FC > 1, padj < 0.05) %>%
+  dplyr::arrange(desc(log2FC))
+print(DEGdf_RPMI_up2x_FDR5, n = 20)
+```
+
+Print the top 20 *named* DEGs
+
+```{r DEGs_RPMI_up_named}
+DEGdf_RPMI_up2x_FDR5 %>%
+  dplyr::filter(!is.na(geneName)) %>%
+  print(n = 20)
+```
+
+## List DEGs most DOWN in RPMI+ vs YPD
+
+
+```{r DEGs_RPMI_down, fig.width = 6, fig.height = 3}
+# Make data frames of DEGs up and down, arranged by log2FC
+DEGdf_RPMI_down2x_FDR5 <- 
+  dplyr::filter(deseq_df_RPMIvsYPD_37C1hr,
+                log2FC < -1, padj < 0.05) %>%
+  dplyr::arrange(log2FC)
+print(DEGdf_RPMI_down2x_FDR5, n = 20)
+```
+
+Print the top 20 *named* DEGs
+
+```{r DEGs_RPMI_down_named}
+DEGdf_RPMI_down2x_FDR5 %>%
+  dplyr::filter(!is.na(geneName)) %>%
+  print(n = 20)
+```
+
+## Volcano plot of DEGs
+
+```{r volcano_RPMIvsYPD_37C1hr, fig.width = 6, fig.height = 3}
+volcano_RPMIvsYPD_37C1hr <- 
+  ggplot(data = deseq_df_RPMIvsYPD_37C1hr,
+         aes(x = log2FC, y = -log10(padj)) ) +
+  geom_point(size = 0.5, colour = "grey50") +
+  geom_point(data = DEGdf_RPMI_up2x_FDR5,
+             size = 1, colour = "darkblue") +
+  geom_point(data = DEGdf_RPMI_down2x_FDR5,
+             size = 1, colour = "darkred") +
+  scale_y_continuous("-log10(p)",
+                     limits = c(0,10), expand = c(0,0),
+                     oob=scales::squish) +
+  scale_x_continuous("log2 fold-change, RPMI+serum vs YPD, 37C 1hr",
+                     breaks = -5:5,
+                     limits = c(-4,4), expand = c(0.01,0.01),
+                     oob = scales::squish) +
+  coord_cartesian(clip = "off") 
+volcano_RPMIvsYPD_37C1hr
+```
+
+The volcano plot is right-skewed - more genes up in RPMI compared to down in RPMI.
+
+
+## Write outputs to files
+
+```{r write_DEGs}
+deseq_df_RPMIvsYPD_37C1hr %>%
+  dplyr::mutate(
+    across(c(baseMean, log2FC, stderror), round, digits = 3)
+  ) %>%
+  dplyr::mutate(padj = signif(padj, digits = 4)) %>%
+  write_tsv(file = here::here("results", "DEGs",
+                              "deseq_df_RPMIvsYPD_37C1hr.txt"))
+
+DEGdf_RPMI_up2x_FDR5 %>%
+  dplyr::pull(gene) %>%
+  write_lines(file = here::here("results", "DEGs",
+                            "deglist_RPMIvsYPD_37C1hr_up2x_FDR5.txt"))
+
+DEGdf_RPMI_down2x_FDR5 %>%
+  dplyr::pull(gene) %>%
+  write_lines(file = here::here("results", "DEGs",
+                            "deglist_RPMIvsYPD_37C1hr_down2x_FDR5.txt"))
+```
+

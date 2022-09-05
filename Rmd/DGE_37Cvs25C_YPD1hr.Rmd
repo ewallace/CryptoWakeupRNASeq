@@ -1,5 +1,5 @@
 ---
-title: "Differential Gene Expression of 37C vs 25C in RPMI + Serum samples"
+title: "Differential Gene Expression of 37C vs 25C in YPD samples"
 author: "Edward Wallace"
 date: "2022-09-05"
 output: 
@@ -10,7 +10,7 @@ output:
 
 # Summary
 
-Differential Gene Expression of 37C vs 25C in RPMI + Serum samples using DESeq2
+Differential Gene Expression of 37C vs 25C in YPD samples using DESeq2
 
 This analysis does:
 
@@ -23,32 +23,32 @@ It concludes that... EDIT
 ```{r call_load_count_data, child = "load_count_data.Rmd"}
 ```
 
-# DESeq on a subset of data, only RPMI + Serum at 1hr
+# DESeq on a subset of data, only YPD at 1hr
 
-```{r subset_37Cvs25C_RPMI1hr, fig.height=8, fig.width=8}
-sample_sheet_37Cvs25C_RPMI1hr <-
+```{r subset_37Cvs25C_YPD1hr, fig.height=8, fig.width=8}
+sample_sheet_37Cvs25C_YPD1hr <-
   dplyr::filter(sample_sheet,
-                Time == 60, Medium == "RPMI+")
+                Time == 60, Medium == "YPD")
 
-dds_37Cvs25C_RPMI1hr <- 
+dds_37Cvs25C_YPD1hr <- 
   DESeqDataSetFromMatrix(countData = counts_all %>%
-                           dplyr::select(sample_sheet_37Cvs25C_RPMI1hr$Code) %>%
+                           dplyr::select(sample_sheet_37Cvs25C_YPD1hr$Code) %>%
                            magrittr::set_rownames(counts_all$Gene),
-                         colData = sample_sheet_37Cvs25C_RPMI1hr,
+                         colData = sample_sheet_37Cvs25C_YPD1hr,
                          design = ~ Temp) %>%
   DESeq()
 
-dds_37Cvs25C_RPMI1hr
+dds_37Cvs25C_YPD1hr
 ```
-```{r results_37Cvs25C_RPMI1hr}
-results(dds_37Cvs25C_RPMI1hr)
+```{r results_37Cvs25C_YPD1hr}
+results(dds_37Cvs25C_YPD1hr)
 
-resultsNames(dds_37Cvs25C_RPMI1hr)
+resultsNames(dds_37Cvs25C_YPD1hr)
 ```
 
-```{r deseq_df_37Cvs25C_RPMI1hr}
-deseq_df_37Cvs25C_RPMI1hr <- 
-  biobroom::tidy.DESeqDataSet(dds_37Cvs25C_RPMI1hr) %>%
+```{r deseq_df_37Cvs25C_YPD1hr}
+deseq_df_37Cvs25C_YPD1hr <- 
+  biobroom::tidy.DESeqDataSet(dds_37Cvs25C_YPD1hr) %>%
   dplyr::filter(term == "Temp_37C_vs_25C") %>%
   dplyr::left_join(gene_info_df,
                    by = "gene") %>% 
@@ -68,7 +68,7 @@ We cut off at 2x changes with 5% FDR here.
 ```{r DEGs_37C_up, fig.width = 6, fig.height = 3}
 # Make data frames of DEGs up and down, arranged by log2FC
 DEGdf_37C_up2x_FDR5 <- 
-  dplyr::filter(deseq_df_37Cvs25C_RPMI1hr,
+  dplyr::filter(deseq_df_37Cvs25C_YPD1hr,
                 log2FC > 1, padj < 0.05) %>%
   dplyr::arrange(desc(log2FC))
 print(DEGdf_37C_up2x_FDR5, n = 20)
@@ -82,18 +82,18 @@ DEGdf_37C_up2x_FDR5 %>%
   print(n = 20)
 ```
 
+
 ## List DEGs most DOWN in 37C vs 25C
 
 
 ```{r DEGs_37C_down, fig.width = 6, fig.height = 3}
 # Make data frames of DEGs up and down, arranged by log2FC
 DEGdf_37C_down2x_FDR5 <- 
-  dplyr::filter(deseq_df_37Cvs25C_RPMI1hr,
+  dplyr::filter(deseq_df_37Cvs25C_YPD1hr,
                 log2FC < -1, padj < 0.05) %>%
   dplyr::arrange(log2FC)
 print(DEGdf_37C_down2x_FDR5, n = 20)
 ```
-
 
 Print the top 20 *named* DEGs
 
@@ -105,9 +105,9 @@ DEGdf_37C_down2x_FDR5 %>%
 
 ## Volcano plot of DEGs
 
-```{r volcano_37Cvs25C_RPMI1hr, fig.width = 6, fig.height = 3}
-volcano_37Cvs25C_RPMI1hr <- 
-  ggplot(data = deseq_df_37Cvs25C_RPMI1hr,
+```{r volcano_37Cvs25C_YPD1hr, fig.width = 6, fig.height = 3}
+volcano_37Cvs25C_YPD1hr <- 
+  ggplot(data = deseq_df_37Cvs25C_YPD1hr,
          aes(x = log2FC, y = -log10(padj)) ) +
   geom_point(size = 0.5, colour = "grey50") +
   geom_point(data = DEGdf_37C_up2x_FDR5,
@@ -122,28 +122,33 @@ volcano_37Cvs25C_RPMI1hr <-
                      limits = c(-4,4), expand = c(0.01,0.01),
                      oob = scales::squish) +
   coord_cartesian(clip = "off") 
-volcano_37Cvs25C_RPMI1hr
+volcano_37Cvs25C_YPD1hr
 ```
+
+The volcano plot shows a clear set of genes with log2FC less than 2 but adjusted p-value below 0.05.
+
+Check that - cutoff might miss an interesting group of genes e.g. downregulated ribosomal proteins.
+
 
 ## Write outputs to files
 
 ```{r write_DEGs}
-deseq_df_37Cvs25C_RPMI1hr %>%
+deseq_df_37Cvs25C_YPD1hr %>%
   dplyr::mutate(
     across(c(baseMean, log2FC, stderror), round, digits = 3)
   ) %>%
   dplyr::mutate(padj = signif(padj, digits = 4)) %>%
   write_tsv(file = here::here("results", "DEGs",
-                              "deseq_df_37Cvs25C_RPMI1hr.txt"))
+                              "deseq_df_37Cvs25C_YPD1hr.txt"))
 
 DEGdf_37C_up2x_FDR5 %>%
   dplyr::pull(gene) %>%
   write_lines(file = here::here("results", "DEGs",
-                            "deglist_37Cvs25C_RPMI1hr_up2x_FDR5.txt"))
+                            "deglist_37Cvs25C_YPD1hr_up2x_FDR5.txt"))
 
 DEGdf_37C_down2x_FDR5 %>%
   dplyr::pull(gene) %>%
   write_lines(file = here::here("results", "DEGs",
-                            "deglist_37Cvs25C_RPMI1hr_down2x_FDR5.txt"))
+                            "deglist_37Cvs25C_YPD1hr_down2x_FDR5.txt"))
 ```
 
