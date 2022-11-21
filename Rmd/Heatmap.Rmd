@@ -1,0 +1,213 @@
+---
+title: "Clustered heatmap of Cryptococcus Wakeup RNAseq timecourse"
+author: "Edward Wallace"
+date: "2022-11-21"
+output: 
+  html_document:
+    toc: true
+---
+
+
+# Summary
+
+Clustered heatmap of Cryptococcus Wakeup RNAseq timecourse
+
+This analysis does:
+
+- EDIT
+
+It concludes that... EDIT
+
+## Load count data from shared script load_count_data.Rmd
+
+```{r call_load_count_data, child = "load_count_data.Rmd"}
+```
+
+```{r load_libraries}
+library(ggdendro)
+```
+
+
+## Set levels to display Condition (Media, Temperature, Time)
+
+```{r set_MTT_levels}
+MTT_levels <- levels(sample_sheet$MediumTempTime)
+```
+# Calculate read count statistics by gene
+
+## Check distribution of counts and baseMean
+
+```{r count_distribution}
+count_stats_bygene <- 
+  counts_all %>%
+  dplyr::select(-Gene, -Length) %>%
+  as.matrix() %>%
+  tibble(gene = rownames(counts_all),
+         count_min = rowMins(.),
+         count_mean = rowMeans(.),
+         count_max = rowMaxs(.)) %>%
+  select( - ".") # removes pipe behaviour leading to inclusion of "."
+
+genelist_mincount_1 <- 
+  count_stats_bygene %>%
+  filter(count_min >= 1) %>%
+  pull(gene)
+
+ggplot(data = count_stats_bygene) +
+  geom_density(aes(x=count_min + 1, colour = "min"), 
+               size = 1, kernel = "rectangular") +
+  geom_density(aes(x=count_max + 1, colour = "max"), 
+               size = 1, kernel = "rectangular") +
+  geom_density(aes(x=count_mean + 1, colour = "mean"), 
+               size = 1, kernel = "rectangular") +
+  scale_colour_manual(values = c("min" = "lightblue",
+                                 "mean" = "grey20",
+                                 "max" = "pink")) + 
+  scale_x_log10("log10(count per gene + 1)")
+```
+
+# DESeq on a subset of data, only YPD at 1hr
+
+```{r subset, fig.height=8, fig.width=8}
+dds_all <- DESeqDataSetFromMatrix(
+  countData = counts_all %>%
+    dplyr::select(sample_sheet$Code) %>%
+    magrittr::set_rownames(counts_all$Gene),
+  colData = sample_sheet,
+  design = ~ MediumTempTime - 1 ) %>%
+  DESeq()
+
+dds_all
+resultsNames(dds_all)
+```
+
+```{r results}
+results(dds_all)
+```
+
+## Select MTT-dependent log2FC at each timepoint
+
+```{r tidy_deseq_MTT}
+# Create a tidy data frame that contains only the GAT201-dependent log2FC
+# in a helpful format for plotting
+deseq_df_MTT <- 
+  biobroom::tidy.DESeqDataSet(dds_all) %>%
+  dplyr::mutate(MediumTempTime = term %>%
+           stringr::str_remove("MediumTempTime") %>%
+           factor(levels = MTT_levels)) %>%
+  dplyr::select(MediumTempTime, gene, baseMean, log2estimate = estimate) %>%
+  dplyr::group_by(gene) %>%
+  dplyr::mutate(log2FC = log2estimate - mean(log2estimate)) %>%
+  dplyr::ungroup()
+
+# restrict to genes with mincount 10
+deseq_df_MTT_mincount_1 <- 
+  deseq_df_MTT %>%
+  filter(gene %in% genelist_mincount_1)
+
+# check we retained all the levels
+unique(deseq_df_MTT$MediumTempTime)
+```
+
+## Calculate gene expression hierarchical clusters
+
+Here we restrict to genes with at least 11 counts in each sample.
+This list was calculated earlier as `genelist_mincount_11`. 
+
+This avoids a problem with numeric errors in calculations for all genes, that probably came from genes with low/zero counts.
+
+```{r hclust_genes}
+log2FC_MTT_m1_wide <-
+  deseq_df_MTT_mincount_1  %>%
+  select(gene, MediumTempTime, log2FC) %>%
+  pivot_wider(id_cols = gene, names_from = MediumTempTime, values_from = log2FC) %>%
+  select(c("gene", MTT_levels))
+
+hclust_log2FC <- 
+  log2FC_MTT_m1_wide %>%
+  magrittr::set_rownames(.$gene) %>%
+  dplyr::select(-gene) %>%
+  # head(n= 100) %>%
+  dist() %>%
+  hclust()
+```
+## Plot clustering dendrogram by itself
+
+```{r plot_dendrogram_log2FC_m10}
+plot_dendrogram_log2FC_m1 <- 
+  ggdendrogram(hclust_log2FC,
+               rotate = TRUE,
+               labels = FALSE) + 
+  theme_void() +
+  scale_y_reverse() +
+  coord_flip(expand = c(0,0), clip = "off")
+plot_dendrogram_log2FC_m1
+```
+
+## Plot the log2 fold-change in same order as clustering dendrogram
+
+```{r plot_log2FC_m1_dorder}
+
+deseq_df_MTT_mincount_1_dorder <- 
+  deseq_df_MTT_mincount_1 %>%
+  mutate(gene_dorder = 
+           factor(gene,
+                  levels = log2FC_MTT_m1_wide$gene[hclust_log2FC$order],
+                  ordered = TRUE)
+         )
+
+plot_log2FC_m1_dorder <- 
+  ggplot(data = deseq_df_MTT_mincount_1_dorder,
+         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3.5, 3.5), oob = scales::squish) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  labs(x = "Temperature, Media, Time",
+       y = "Gene, ordered by clustering")
+
+plot_log2FC_m1_dorder
+```
+
+
+# Combined plot of dendrogram and heatmap
+
+This combines the previous plot panels into a single plot, showing the dendrogram aligned with the clustered heatmap, and NOT YET with nice x-axis labels.
+
+```{r combine_dendrogram_heatmap, fig.height = 5, fig.width = 5}
+plot_dh_nolegend <- 
+  plot_grid(plot_dendrogram_log2FC_m1,
+          plot_log2FC_m1_dorder +
+            theme(axis.title.y = element_blank(),
+                  axis.title.x = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.ticks.x = element_blank(),
+                  legend.position = "none"),
+          # plot_nice_MTT_yaxis,
+          # plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
+          ncol = 2,
+          align = "hv",
+          rel_widths = c(1,5) 
+          #,
+          # rel_heights = c(7,1)
+          )
+
+plot_grid(plot_dh_nolegend,
+          get_legend(plot_log2FC_m1_dorder + 
+                       theme(legend.box.margin = margin(0, 0, 0, 5))),
+          ncol = 2,
+          rel_widths = c(7,1))
+
+# ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
+```
+
+# TO DO LIST
+
+- Try different cutoffs for gene list (mincount etc)
+- Check informative gene ordering?
+- Create nice x-axis
+- Write figure legend

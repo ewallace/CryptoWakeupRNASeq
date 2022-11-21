@@ -53,7 +53,11 @@ sample_sheet <-
                    Temp = factor(Temp, levels = c("25C", "30C", "37C")),
                    Time = as.integer(Time),
                    Rep = as_factor(Rep),
-                   MediumTemp = paste(Medium,Temp))
+                   MediumTemp = paste(Medium,Temp),
+                   MediumTempTime = 
+                     paste(Medium,Temp,Time, sep = "_") %>% 
+                     stringr::str_replace("\\+","S") %>%
+                     forcats::as_factor())
 
 sample_sheet 
 ```
