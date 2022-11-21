@@ -31,7 +31,22 @@ library(ggdendro)
 ## Set levels to display Condition (Media, Temperature, Time)
 
 ```{r set_MTT_levels}
-MTT_levels <- levels(sample_sheet$MediumTempTime)
+# MTT_levels <- 
+#  c("YPD_30C_180", 
+#    "YPD_25C_0", 
+#    "YPD_25C_10", "YPD_25C_30", "YPD_25C_60", "YPD_25C_120",
+#    "YPD_37C_10", "YPD_37C_30", "YPD_37C_60", "YPD_37C_120",
+#    "RPMIS_25C_10", "RPMIS_25C_30", "RPMIS_25C_60", "RPMIS_25C_120",
+#    "RPMIS_37C_10", "RPMIS_37C_30", "RPMIS_37C_60", "RPMIS_37C_120")
+
+MTT_levels <- 
+ c("YPD_25C_0", 
+   "RPMIS_25C_10", "RPMIS_25C_30", "RPMIS_25C_60", "RPMIS_25C_120",
+   "RPMIS_37C_10", "RPMIS_37C_30", "RPMIS_37C_60", "RPMIS_37C_120",
+   "YPD_25C_10", "YPD_25C_30", "YPD_25C_60", "YPD_25C_120",
+   "YPD_37C_10", "YPD_37C_30", "YPD_37C_60", "YPD_37C_120",
+   "YPD_30C_180"
+ )
 ```
 # Calculate read count statistics by gene
 
@@ -146,7 +161,7 @@ plot_dendrogram_log2FC_m1
 
 ## Plot the log2 fold-change in same order as clustering dendrogram
 
-```{r plot_log2FC_m1_dorder}
+```{r plot_log2FC_m1_dorder, fig.height = 7, fig.width = 5}
 
 deseq_df_MTT_mincount_1_dorder <- 
   deseq_df_MTT_mincount_1 %>%
@@ -173,12 +188,67 @@ plot_log2FC_m1_dorder <-
 plot_log2FC_m1_dorder
 ```
 
+## Make a nicer x-axis for sample labels
+
+This section programs up x-axis labels split up by GAT201, Time, Serum
+
+It's ugly code to get a pretty result.
+
+```{r nice_MTT_labels, fig.height = 1, fig.width = 5}
+MTT_df <- 
+  tibble(MTT = as_factor(MTT_levels),
+                 x = as.numeric(MTT)) %>%
+  separate(MTT, c("Medium","Temperature","Time"), remove = FALSE) %>% 
+  mutate(Phase = Time %>%
+           forcats::fct_collapse(Stat = "0",
+                                 Lag  = c("10","30","60","120"),
+                                 Exp = "180")) # %>%
+  # mutate(Serum = factor(Condition, 
+  #                       levels = c("R","RS"),
+  #                       labels = c("−", "+")),
+  #        GAT201 = str_replace(GAT201, "del", "∆"))
+
+MTT_MT_df <- MTT_df %>%
+  group_by(Medium,Temperature,Phase) %>%
+  summarise(xmean = mean(x), xmin = min(x), xmax = max(x)) %>%
+  mutate(Medium = str_replace(Medium, "RPMIS", "RPMI+"),
+         Temperature = str_replace(Temperature, "C", "°C"),)
+
+plot_nice_MTT_labels <- 
+  ggplot(data = MTT_df) +
+  geom_text(aes(x = x, label = Time), y = 3) + 
+  geom_text(data = MTT_MT_df, aes(x = xmean, label = Medium), y = 2) + 
+  geom_segment(data = MTT_MT_df,
+               aes(x = xmin, xend = xmax), y = 2.5, yend = 2.5) +
+  geom_text(data = MTT_MT_df, aes(x = xmean, label = Temperature), y = 1) + 
+  scale_y_continuous(limits = c(0.5,3.5),
+                     breaks = c(1,2,3),
+                     labels = c("Temperature", "Medium", "Time (mins)")) + 
+  scale_x_continuous(limits = c(0.5, max(MTT_df$x + 0.5))) + 
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme_nothing() + 
+  theme(axis.text.y = element_text())
+
+plot_nice_MTT_labels
+
+# the next bit plots the y-axis labels as their own ggplot, right-aligned
+# so that we can get everything to align nicely in the plot_grid later
+plot_nice_MTT_yaxis <- 
+  ggplot(data = tibble(y = c(1,2,3),
+                     label = c("Temperature", "Medium", "Time (mins)")),
+         aes(y=y, label = label)) +
+  geom_text(hjust = 1, x = 1) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 3.5),
+                  expand = c(0,0), clip = "off")  + 
+  theme_nothing() 
+```
+
 
 # Combined plot of dendrogram and heatmap
 
 This combines the previous plot panels into a single plot, showing the dendrogram aligned with the clustered heatmap, and NOT YET with nice x-axis labels.
 
-```{r combine_dendrogram_heatmap, fig.height = 5, fig.width = 5}
+```{r combine_dendrogram_heatmap, fig.height = 6, fig.width = 7}
 plot_dh_nolegend <- 
   plot_grid(plot_dendrogram_log2FC_m1,
           plot_log2FC_m1_dorder +
@@ -187,13 +257,12 @@ plot_dh_nolegend <-
                   axis.text.x = element_blank(),
                   axis.ticks.x = element_blank(),
                   legend.position = "none"),
-          # plot_nice_MTT_yaxis,
-          # plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
+          plot_nice_MTT_yaxis,
+          plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
           ncol = 2,
           align = "hv",
-          rel_widths = c(1,5) 
-          #,
-          # rel_heights = c(7,1)
+          rel_widths = c(1,5),
+          rel_heights = c(7,1)
           )
 
 plot_grid(plot_dh_nolegend,
