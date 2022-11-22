@@ -1,7 +1,7 @@
 ---
 title: "Clustered heatmap of Cryptococcus Wakeup RNAseq timecourse"
 author: "Edward Wallace"
-date: "2022-11-21"
+date: "2022-11-22"
 output: 
   html_document:
     toc: true
@@ -25,12 +25,14 @@ It concludes that... EDIT
 
 ```{r load_libraries}
 library(ggdendro)
+library(vegan)
 ```
 
 
 ## Set levels to display Condition (Media, Temperature, Time)
 
 ```{r set_MTT_levels}
+# Order as described in the sample sheet: YPD before RPMI+
 # MTT_levels <- 
 #  c("YPD_30C_180", 
 #    "YPD_25C_0", 
@@ -39,15 +41,45 @@ library(ggdendro)
 #    "RPMIS_25C_10", "RPMIS_25C_30", "RPMIS_25C_60", "RPMIS_25C_120",
 #    "RPMIS_37C_10", "RPMIS_37C_30", "RPMIS_37C_60", "RPMIS_37C_120")
 
-MTT_levels <- 
- c("YPD_25C_0", 
-   "RPMIS_25C_10", "RPMIS_25C_30", "RPMIS_25C_60", "RPMIS_25C_120",
-   "RPMIS_37C_10", "RPMIS_37C_30", "RPMIS_37C_60", "RPMIS_37C_120",
-   "YPD_25C_10", "YPD_25C_30", "YPD_25C_60", "YPD_25C_120",
-   "YPD_37C_10", "YPD_37C_30", "YPD_37C_60", "YPD_37C_120",
-   "YPD_30C_180"
- )
+# Order with RPMI+ before YPD, moved Exp phase to end 
+# MTT_levels <- 
+#  c("YPD_25C_0", 
+#    "RPMIS_25C_10", "RPMIS_25C_30", "RPMIS_25C_60", "RPMIS_25C_120",
+#    "RPMIS_37C_10", "RPMIS_37C_30", "RPMIS_37C_60", "RPMIS_37C_120",
+#    "YPD_25C_10", "YPD_25C_30", "YPD_25C_60", "YPD_25C_120",
+#    "YPD_37C_10", "YPD_37C_30", "YPD_37C_60", "YPD_37C_120",
+#    "YPD_30C_180"
+#  )
+
+# Order with RPMI+ before YPD, like timepoints at each temperature grouped 
+# MTT_levels <- 
+#  c("YPD_25C_0", 
+#    "RPMIS_25C_10", "RPMIS_37C_10", 
+#    "RPMIS_25C_30", "RPMIS_37C_30",
+#    "RPMIS_25C_60", "RPMIS_37C_60",
+#    "RPMIS_25C_120", "RPMIS_37C_120",
+#    "YPD_25C_10", "YPD_37C_10", 
+#    "YPD_25C_30", "YPD_37C_30",
+#    "YPD_25C_60", "YPD_37C_60",
+#    "YPD_25C_120", "YPD_37C_120",
+#    "YPD_30C_180"
+#  )
+
+# Order with RPMI+ before YPD, like timepoints at each temperature and media grouped 
+MTT_levels <-
+  c("YPD_25C_0",
+    "RPMIS_25C_10", "RPMIS_37C_10",
+    "YPD_25C_10", "YPD_37C_10",
+    "RPMIS_25C_30", "RPMIS_37C_30",
+    "YPD_25C_30", "YPD_37C_30",
+    "RPMIS_25C_60", "RPMIS_37C_60",
+    "YPD_25C_60", "YPD_37C_60",
+    "RPMIS_25C_120", "RPMIS_37C_120",
+    "YPD_25C_120", "YPD_37C_120",
+    "YPD_30C_180"
+  )
 ```
+
 # Calculate read count statistics by gene
 
 ## Check distribution of counts and baseMean
@@ -138,17 +170,31 @@ log2FC_MTT_m1_wide <-
   pivot_wider(id_cols = gene, names_from = MediumTempTime, values_from = log2FC) %>%
   select(c("gene", MTT_levels))
 
+preferred_gene_ordering <- 
+  deseq_df_MTT_mincount_1 %>% 
+  dplyr::filter(MediumTempTime == "YPD_25C_0") %>%
+  dplyr::pull(log2FC)
+
+# Function to allow calculation of distance by correlation
+# not exactly as euclidean distance
+# decided not to use but keeping for this commit
+distcort <- function(x) {
+  as.dist(1 - cor(t(x)))
+}
+  
 hclust_log2FC <- 
   log2FC_MTT_m1_wide %>%
   magrittr::set_rownames(.$gene) %>%
   dplyr::select(-gene) %>%
   # head(n= 100) %>%
   dist() %>%
-  hclust()
+  # distcort() %>%
+  hclust() %>%
+  reorder(wts = preferred_gene_ordering)
 ```
 ## Plot clustering dendrogram by itself
 
-```{r plot_dendrogram_log2FC_m10}
+```{r plot_dendrogram_log2FC_m1}
 plot_dendrogram_log2FC_m1 <- 
   ggdendrogram(hclust_log2FC,
                rotate = TRUE,
@@ -176,7 +222,7 @@ plot_log2FC_m1_dorder <-
          aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
   geom_tile() +
   scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
-                       limits = c(-3.5, 3.5), oob = scales::squish) +
+                       limits = c(-3, 3), oob = scales::squish) +
   coord_cartesian(expand = c(0,0), clip = "off") + 
   theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
         panel.grid.major = element_blank(),
@@ -198,32 +244,46 @@ It's ugly code to get a pretty result.
 MTT_df <- 
   tibble(MTT = as_factor(MTT_levels),
                  x = as.numeric(MTT)) %>%
-  separate(MTT, c("Medium","Temperature","Time"), remove = FALSE) %>% 
-  mutate(Phase = Time %>%
+  tidyr::separate(MTT, c("Medium","Temperature","Time"), remove = FALSE) %>% 
+  dplyr::mutate(Phase = Time %>%
            forcats::fct_collapse(Stat = "0",
                                  Lag  = c("10","30","60","120"),
-                                 Exp = "180")) # %>%
-  # mutate(Serum = factor(Condition, 
-  #                       levels = c("R","RS"),
-  #                       labels = c("−", "+")),
-  #        GAT201 = str_replace(GAT201, "del", "∆"))
+                                 Exp = "180"),
+         Medium = str_replace(Medium, "RPMIS", "RPMI+"),
+         Temperature = str_replace(Temperature, "C", "°C")
+         )
 
-MTT_MT_df <- MTT_df %>%
-  group_by(Medium,Temperature,Phase) %>%
-  summarise(xmean = mean(x), xmin = min(x), xmax = max(x)) %>%
-  mutate(Medium = str_replace(Medium, "RPMIS", "RPMI+"),
-         Temperature = str_replace(Temperature, "C", "°C"),)
+MTT_MTime_df <- MTT_df %>%
+  dplyr::filter(MTT != "YPD_25C_0") %>%
+  dplyr::group_by(Medium,Time) %>%
+  dplyr::summarise(xmean = mean(x), xmin = min(x), xmax = max(x),
+                   .groups = "keep")
+
+MTT_MTime_df <- MTT_df %>%
+  dplyr::filter(MTT != "YPD_25C_0") %>%
+  dplyr::group_by(Medium,Time) %>%
+  dplyr::summarise(xmean = mean(x), xmin = min(x), xmax = max(x),
+                   .groups = "keep")
+
+MTT_Time_df <- MTT_df %>%
+  # dplyr::filter(MTT != "YPD_25C_0") %>%
+  dplyr::group_by(Time) %>%
+  dplyr::summarise(xmean = mean(x), xmin = min(x), xmax = max(x),
+                   .groups = "keep") 
 
 plot_nice_MTT_labels <- 
-  ggplot(data = MTT_df) +
-  geom_text(aes(x = x, label = Time), y = 3) + 
-  geom_text(data = MTT_MT_df, aes(x = xmean, label = Medium), y = 2) + 
-  geom_segment(data = MTT_MT_df,
+  ggplot(data = MTT_df  %>%
+           dplyr::filter(MTT != "YPD_25C_0") ) +
+  geom_text(aes(x = x, label = Temperature), y = 3, size = 2.6) + 
+  geom_text(data = MTT_MTime_df, aes(x = xmean, label = Medium), y = 2, size = 2.9) + 
+  geom_segment(data = MTT_MTime_df,
                aes(x = xmin, xend = xmax), y = 2.5, yend = 2.5) +
-  geom_text(data = MTT_MT_df, aes(x = xmean, label = Temperature), y = 1) + 
+  geom_text(data = MTT_Time_df, aes(x = xmean, label = Time), y = 1) + 
+  geom_segment(data = MTT_Time_df,
+               aes(x = xmin, xend = xmax), y = 1.5, yend = 1.5) +
   scale_y_continuous(limits = c(0.5,3.5),
                      breaks = c(1,2,3),
-                     labels = c("Temperature", "Medium", "Time (mins)")) + 
+                     labels = c("Time (mins)", "Medium", "Temperature")) + 
   scale_x_continuous(limits = c(0.5, max(MTT_df$x + 0.5))) + 
   coord_cartesian(expand = c(0,0), clip = "off") + 
   theme_nothing() + 
@@ -235,7 +295,7 @@ plot_nice_MTT_labels
 # so that we can get everything to align nicely in the plot_grid later
 plot_nice_MTT_yaxis <- 
   ggplot(data = tibble(y = c(1,2,3),
-                     label = c("Temperature", "Medium", "Time (mins)")),
+                     label = c("Time (mins)", "Medium", "Temperature")),
          aes(y=y, label = label)) +
   geom_text(hjust = 1, x = 1) +
   coord_cartesian(xlim = c(0, 1), ylim = c(0.5, 3.5),
@@ -276,7 +336,4 @@ plot_grid(plot_dh_nolegend,
 
 # TO DO LIST
 
-- Try different cutoffs for gene list (mincount etc)
-- Check informative gene ordering?
-- Create nice x-axis
 - Write figure legend
