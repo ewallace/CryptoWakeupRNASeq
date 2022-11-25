@@ -171,9 +171,8 @@ log2FC_MTT_m1_wide <-
   select(c("gene", MTT_levels))
 
 preferred_gene_ordering <- 
-  deseq_df_MTT_mincount_1 %>% 
-  dplyr::filter(MediumTempTime == "YPD_25C_0") %>%
-  dplyr::pull(log2FC)
+  log2FC_MTT_m1_wide %>% 
+  dplyr::pull(YPD_25C_0)
 
 # Function to allow calculation of distance by correlation
 # not exactly as euclidean distance
@@ -184,21 +183,30 @@ distcort <- function(x) {
   
 hclust_log2FC <- 
   log2FC_MTT_m1_wide %>%
-  magrittr::set_rownames(.$gene) %>%
   dplyr::select(-gene) %>%
+  as.matrix() %>%
+  magrittr::set_rownames(log2FC_MTT_m1_wide$gene) %>%
   # head(n= 100) %>%
   dist() %>%
   # distcort() %>%
   hclust() %>%
   reorder(wts = preferred_gene_ordering)
 ```
+
 ## Plot clustering dendrogram by itself
 
 ```{r plot_dendrogram_log2FC_m1}
+# dendrogram data
+hclust_log2FC_dendrodf <- 
+  hclust_log2FC %>% dendro_data()
+
+
 plot_dendrogram_log2FC_m1 <- 
-  ggdendrogram(hclust_log2FC,
-               rotate = TRUE,
-               labels = FALSE) + 
+  ggplot(data = hclust_log2FC_dendrodf$segments) + 
+  geom_segment(aes(x = x, xend = xend, y = y, yend = yend)) +
+  # geom_label(data = hclust_log2FC_dendrodf$labels %>%
+  #              filter(label %in% c("CNAG_06963", "CNAG_03143")),
+  #            aes(x = x, y = y, label = label)) +
   theme_void() +
   scale_y_reverse() +
   coord_flip(expand = c(0,0), clip = "off")
@@ -232,7 +240,49 @@ plot_log2FC_m1_dorder <-
        y = "Gene, ordered by clustering")
 
 plot_log2FC_m1_dorder
+
+# ggsave(filename = "../results/clustered_heatmap_CryptoWakeupMediumTemperatureTime_tall.pdf", 
+#       plot_log2FC_m1_dorder + theme(axis.text.y = element_text(size = 2)),
+#       width = 6, height = 72, limitsize = FALSE)
 ```
+
+```{r heatmap_genes_select}
+genes_translation <- c(RPS3 = "CNAG_00116", 
+                       RPL2 = "CNAG_05232", 
+                       TEF1 = "CNAG_06125")
+genes_stationary <- c(CQS1 = "CNAG_03012", 
+                      HSP12 = "CNAG_03143", 
+                      BLP2 = "CNAG_06347")
+genes_heat <- c(SSA1 = "CNAG_06443", 
+                HSP90 = "CNAG_06150", 
+                # HSP10 = "CNAG_03892"
+                TSA3 = "CNAG_06917")
+genes_GAT201 <- c(GAT201 = "CNAG_01551", 
+                  GAT204 = "CNAG_06762", 
+                  LIV3 = "CNAG_05835")
+
+genes_select <- c(genes_translation, genes_stationary, 
+                  genes_heat, genes_GAT201)
+
+ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
+         dplyr::filter(gene %in% genes_select),
+       aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3, 3), oob = scales::squish) +
+  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank())
+
+# plot_log2FC_m1_dorder + 
+#   geom_text(deseq_df_MTT_mincount_1_dorder %>% 
+#          dplyr::filter(gene %in% genes_select,
+#                        MediumTempTime == "YPD_25C_0"),
+#          mapping = aes(x=0, y = gene_dorder, label = str_remove(gene, "CNAG_0")),
+#          size = 2, colour = "red")
+```
+
 
 ## Make a nicer x-axis for sample labels
 
@@ -306,7 +356,7 @@ plot_nice_MTT_yaxis <-
 
 # Combined plot of dendrogram and heatmap
 
-This combines the previous plot panels into a single plot, showing the dendrogram aligned with the clustered heatmap, and NOT YET with nice x-axis labels.
+This combines the previous plot panels into a single plot, showing the dendrogram aligned with the clustered heatmap, and with nice x-axis labels.
 
 ```{r combine_dendrogram_heatmap, fig.height = 6, fig.width = 7}
 plot_dh_nolegend <- 
@@ -332,7 +382,50 @@ plot_grid(plot_dh_nolegend,
           rel_widths = c(7,1))
 
 # ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
+
 ```
+
+### Attempt to extract and plot clusters
+
+```{r extract_clusters, eval = FALSE}
+hclust_colour_df <- 
+    tibble(gene = log2FC_MTT_m1_wide$gene,
+         gene_dorder = 
+           factor(gene,
+                  levels = log2FC_MTT_m1_wide$gene[hclust_log2FC$order],
+                  ordered = TRUE),
+         y = as.integer(gene_dorder),
+         cluster = hclust_log2FC %>% cutree(k = 14) %>% factor())
+hclust_colour_df_grouped <- 
+  hclust_colour_df %>%
+  group_by(cluster) %>%
+  summarise(n = n(), ymin = min(y), ymax = max(y))
+
+plot_grid(plot_dendrogram_log2FC_m1,
+          ggplot(data = hclust_colour_df_grouped) +
+            geom_rect(aes(ymin = ymin, ymax = ymax, fill = cluster), 
+                      xmin = 0, xmax = 1) +
+            scale_colour_brewer() +
+            coord_cartesian(expand = c(0,0), clip = "off") + 
+            theme_nothing(),
+          # theme(axis.line = element_blank(),
+          #         panel.grid = element_blank(),
+          #         axis.title.y = element_blank(),
+          #         axis.title.x = element_blank(),
+          #         axis.text.x = element_blank(),
+          #         axis.ticks.x = element_blank(),
+          #         legend.position = "none"),
+          plot_log2FC_m1_dorder +
+            theme(axis.title.y = element_blank(),
+                  axis.title.x = element_blank(),
+                  # axis.text.x = element_blank(),
+                  # axis.ticks.x = element_blank(),
+                  legend.position = "none"),
+          ncol = 3,
+          align = "h", axis = "tb",
+          rel_widths = c(1,0.2,5))
+```
+
 
 # TO DO LIST
 
