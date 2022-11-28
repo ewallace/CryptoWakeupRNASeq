@@ -187,9 +187,9 @@ hclust_log2FC <-
   as.matrix() %>%
   magrittr::set_rownames(log2FC_MTT_m1_wide$gene) %>%
   # head(n= 100) %>%
-  dist() %>%
-  # distcort() %>%
-  hclust() %>%
+  # dist() %>%
+  distcort() %>%
+  hclust(method = "average") %>%
   reorder(wts = preferred_gene_ordering)
 ```
 
@@ -434,12 +434,12 @@ make_cluster_with_gene <- function(gene_bait,
 }
 
 
-genecluster_TEF1 <- make_cluster_with_gene(gene = "CNAG_06125", k = 60)
+genecluster_TEF1 <- make_cluster_with_gene(gene = "CNAG_06125", k = 100)
 
 write_lines(x = genecluster_TEF1, 
             file = here::here("results",
                               "geneclusters",
-                              "genecluster_translation_k60.txt"))
+                              "genecluster_translation_k100.txt"))
 
 plot_genecluster_TEF1 <- 
   ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
@@ -453,12 +453,12 @@ plot_genecluster_TEF1 <-
   theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
         panel.grid.major = element_blank())
 
-genecluster_CQS1 <- make_cluster_with_gene(gene = "CNAG_03012", k = 100)
+genecluster_CQS1 <- make_cluster_with_gene(gene = "CNAG_03012", k = 300)
 
 write_lines(x = genecluster_CQS1, 
             file = here::here("results",
                               "geneclusters",
-                              "genecluster_stationary_k100.txt"))
+                              "genecluster_stationary_k300.txt"))
 
 plot_genecluster_CQS1 <- 
   ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
@@ -473,12 +473,12 @@ plot_genecluster_CQS1 <-
         panel.grid.major = element_blank())
 
 
-genecluster_SSA1 <- make_cluster_with_gene(gene = "CNAG_06443", k = 50)
+genecluster_SSA1 <- make_cluster_with_gene(gene = "CNAG_06443", k = 300)
 
 write_lines(x = genecluster_SSA1, 
             file = here::here("results",
                               "geneclusters",
-                              "genecluster_heat_k50.txt"))
+                              "genecluster_heat_k300.txt"))
 
 plot_genecluster_SSA1 <- 
   ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
@@ -492,6 +492,24 @@ plot_genecluster_SSA1 <-
   theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
         panel.grid.major = element_blank())
 
+genecluster_GAT201 <- make_cluster_with_gene(gene = "CNAG_01551", k = 700)
+
+write_lines(x = genecluster_GAT201, 
+            file = here::here("results",
+                              "geneclusters",
+                              "genecluster_GAT201_k700.txt"))
+
+plot_genecluster_GAT201 <- 
+  ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
+           dplyr::filter(gene %in% genecluster_GAT201),
+         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3, 3), oob = scales::squish) +
+  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank())
 
 hclust_colour_df <- 
   make_clustered_df(k = 14)
