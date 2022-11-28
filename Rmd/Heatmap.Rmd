@@ -388,18 +388,119 @@ plot_grid(plot_dh_nolegend,
 ### Attempt to extract and plot clusters
 
 ```{r extract_clusters, eval = FALSE}
-hclust_colour_df <- 
-    tibble(gene = log2FC_MTT_m1_wide$gene,
+
+make_clustered_df <- function(k = 2, 
+                              names_df = log2FC_MTT_m1_wide,
+                              hclust_results = hclust_log2FC) {
+      tibble(gene = names_df$gene,
          gene_dorder = 
            factor(gene,
-                  levels = log2FC_MTT_m1_wide$gene[hclust_log2FC$order],
+                  levels = names_df$gene[hclust_results$order],
                   ordered = TRUE),
          y = as.integer(gene_dorder),
-         cluster = hclust_log2FC %>% cutree(k = 14) %>% factor())
+         cluster = hclust_results %>% 
+           cutree(k = k) %>% 
+           factor())
+}
+
+get_cluster_from_clustered_df <- function(gene_bait, 
+                                          clustered_df,
+                                          output = c("list", "df")) {
+  # find cluster containing the gene_bait (gene of interest)
+  cluster_number <- clustered_df %>%
+    dplyr::filter(gene == gene_bait) %>%
+    dplyr::pull(cluster)
+  # return all of that cluster
+  clustered_df_filtered <- 
+    clustered_df %>%
+    dplyr::filter(cluster == cluster_number)
+  if (output == "df") {
+    return(clustered_df_filtered)
+  } else if (output == "list") {
+    return(clustered_df_filtered$gene)
+  } 
+}
+
+make_cluster_with_gene <- function(gene_bait,
+                                   k = 2, 
+                                   names_df = log2FC_MTT_m1_wide,
+                                   hclust_results = hclust_log2FC,
+                                   output = c("list", "df")) {
+  clustered_df <- 
+    make_clustered_df(k = k, 
+                      names_df = log2FC_MTT_m1_wide,
+                      hclust_results = hclust_log2FC)
+  get_cluster_from_clustered_df(gene_bait, clustered_df)
+}
+
+
+genecluster_TEF1 <- make_cluster_with_gene(gene = "CNAG_06125", k = 60)
+
+write_lines(x = genecluster_TEF1, 
+            file = here::here("results",
+                              "geneclusters",
+                              "genecluster_translation_k60.txt"))
+
+plot_genecluster_TEF1 <- 
+  ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
+           dplyr::filter(gene %in% genecluster_TEF1),
+         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3, 3), oob = scales::squish) +
+  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank())
+
+genecluster_CQS1 <- make_cluster_with_gene(gene = "CNAG_03012", k = 100)
+
+write_lines(x = genecluster_CQS1, 
+            file = here::here("results",
+                              "geneclusters",
+                              "genecluster_stationary_k100.txt"))
+
+plot_genecluster_CQS1 <- 
+  ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
+           dplyr::filter(gene %in% genecluster_CQS1),
+         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3, 3), oob = scales::squish) +
+  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank())
+
+
+genecluster_SSA1 <- make_cluster_with_gene(gene = "CNAG_06443", k = 50)
+
+write_lines(x = genecluster_SSA1, 
+            file = here::here("results",
+                              "geneclusters",
+                              "genecluster_heat_k50.txt"))
+
+plot_genecluster_SSA1 <- 
+  ggplot(data = deseq_df_MTT_mincount_1_dorder %>% 
+           dplyr::filter(gene %in% genecluster_SSA1),
+         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
+                       limits = c(-3, 3), oob = scales::squish) +
+  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+        panel.grid.major = element_blank())
+
+
+hclust_colour_df <- 
+  make_clustered_df(k = 14)
+
 hclust_colour_df_grouped <- 
   hclust_colour_df %>%
   group_by(cluster) %>%
   summarise(n = n(), ymin = min(y), ymax = max(y))
+
 
 plot_grid(plot_dendrogram_log2FC_m1,
           ggplot(data = hclust_colour_df_grouped) +
@@ -426,7 +527,18 @@ plot_grid(plot_dendrogram_log2FC_m1,
           rel_widths = c(1,0.2,5))
 ```
 
+To make those clusters containing genes of interest
+
+- cuttree to make the clusters
+- search the cluster that gene of interest is in
+- select all the genes from that cluster
+- plot them
+- vary number or height of clusters until it makes sense
+
 
 # TO DO LIST
 
 - Write figure legend
+- Select clusters containing genes of interest
+  - Plot some mini-heatmaps
+  - Output genelists for GO analysis
