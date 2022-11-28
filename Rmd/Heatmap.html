@@ -782,116 +782,119 @@ make_cluster_with_gene &lt;- function(gene_bait,
   get_cluster_from_clustered_df(gene_bait, clustered_df)
 }
 
+plot_clustered_genelist &lt;- 
+  function(genelist, data = deseq_df_MTT_mincount_1_dorder) {
+    ggplot(data = data %&gt;% 
+             dplyr::filter(gene %in% genelist),
+           aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
+      geom_tile() +
+      scale_fill_gradient2(low = &quot;cyan&quot;, mid = &quot;black&quot;, high = &quot;yellow&quot;,
+                           limits = c(-3, 3), oob = scales::squish) +
+      scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+      coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
+      theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
+            panel.grid.major = element_blank())
+    
+  }
 
-genecluster_TEF1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_06125&quot;, k = 100)
 
-write_lines(x = genecluster_TEF1, 
-            file = here::here(&quot;results&quot;,
-                              &quot;geneclusters&quot;,
-                              &quot;genecluster_translation_k100.txt&quot;))
 
-plot_genecluster_TEF1 &lt;- 
-  ggplot(data = deseq_df_MTT_mincount_1_dorder %&gt;% 
-           dplyr::filter(gene %in% genecluster_TEF1),
-         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
-  geom_tile() +
-  scale_fill_gradient2(low = &quot;cyan&quot;, mid = &quot;black&quot;, high = &quot;yellow&quot;,
-                       limits = c(-3, 3), oob = scales::squish) +
-  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
-  coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
-  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
-        panel.grid.major = element_blank())
-
-genecluster_CQS1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_03012&quot;, k = 300)
-
-write_lines(x = genecluster_CQS1, 
+genecluster_CQS1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_03012&quot;, k = 300)</code></pre>
+<pre><code>## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre><code>## Warning in if (output == &quot;list&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre class="r"><code>write_lines(x = genecluster_CQS1, 
             file = here::here(&quot;results&quot;,
                               &quot;geneclusters&quot;,
                               &quot;genecluster_stationary_k300.txt&quot;))
 
-plot_genecluster_CQS1 &lt;- 
-  ggplot(data = deseq_df_MTT_mincount_1_dorder %&gt;% 
-           dplyr::filter(gene %in% genecluster_CQS1),
-         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
-  geom_tile() +
-  scale_fill_gradient2(low = &quot;cyan&quot;, mid = &quot;black&quot;, high = &quot;yellow&quot;,
-                       limits = c(-3, 3), oob = scales::squish) +
-  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
-  coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
-  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
-        panel.grid.major = element_blank())
+plot_genecluster_CQS1 &lt;- plot_clustered_genelist(genecluster_CQS1)
 
 
-genecluster_SSA1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_06443&quot;, k = 300)
+genecluster_SSA1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_06443&quot;, k = 300)</code></pre>
+<pre><code>## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used
 
-write_lines(x = genecluster_SSA1, 
+## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre class="r"><code>write_lines(x = genecluster_SSA1, 
             file = here::here(&quot;results&quot;,
                               &quot;geneclusters&quot;,
                               &quot;genecluster_heat_k300.txt&quot;))
 
-plot_genecluster_SSA1 &lt;- 
-  ggplot(data = deseq_df_MTT_mincount_1_dorder %&gt;% 
-           dplyr::filter(gene %in% genecluster_SSA1),
-         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
-  geom_tile() +
-  scale_fill_gradient2(low = &quot;cyan&quot;, mid = &quot;black&quot;, high = &quot;yellow&quot;,
-                       limits = c(-3, 3), oob = scales::squish) +
-  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
-  coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
-  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
-        panel.grid.major = element_blank())
+plot_genecluster_SSA1 &lt;- plot_clustered_genelist(genecluster_SSA1)
 
-genecluster_GAT201 &lt;- make_cluster_with_gene(gene = &quot;CNAG_01551&quot;, k = 700)
 
-write_lines(x = genecluster_GAT201, 
+genecluster_TEF1 &lt;- make_cluster_with_gene(gene = &quot;CNAG_06125&quot;, k = 600)</code></pre>
+<pre><code>## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used
+
+## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre class="r"><code>write_lines(x = genecluster_TEF1, 
+            file = here::here(&quot;results&quot;,
+                              &quot;geneclusters&quot;,
+                              &quot;genecluster_translation_k600.txt&quot;))
+
+plot_genecluster_TEF1 &lt;- plot_clustered_genelist(genecluster_TEF1)
+
+
+genecluster_TSA3 &lt;- make_cluster_with_gene(gene = &quot;CNAG_06917&quot;, k = 500)</code></pre>
+<pre><code>## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used
+
+## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre class="r"><code>write_lines(x = genecluster_TSA3, 
+            file = here::here(&quot;results&quot;,
+                              &quot;geneclusters&quot;,
+                              &quot;genecluster_TSA3_k500.txt&quot;))
+
+plot_genecluster_TSA3 &lt;- plot_clustered_genelist(genecluster_TSA3)
+
+
+genecluster_GAT201 &lt;- make_cluster_with_gene(gene = &quot;CNAG_01551&quot;, k = 700)</code></pre>
+<pre><code>## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used
+
+## Warning in if (output == &quot;df&quot;) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre class="r"><code>write_lines(x = genecluster_GAT201, 
             file = here::here(&quot;results&quot;,
                               &quot;geneclusters&quot;,
                               &quot;genecluster_GAT201_k700.txt&quot;))
 
-plot_genecluster_GAT201 &lt;- 
-  ggplot(data = deseq_df_MTT_mincount_1_dorder %&gt;% 
-           dplyr::filter(gene %in% genecluster_GAT201),
-         aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
-  geom_tile() +
-  scale_fill_gradient2(low = &quot;cyan&quot;, mid = &quot;black&quot;, high = &quot;yellow&quot;,
-                       limits = c(-3, 3), oob = scales::squish) +
-  scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
-  coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
-  theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
-        panel.grid.major = element_blank())
+plot_genecluster_GAT201 &lt;- plot_clustered_genelist(genecluster_GAT201)
 
-hclust_colour_df &lt;- 
-  make_clustered_df(k = 14)
 
-hclust_colour_df_grouped &lt;- 
-  hclust_colour_df %&gt;%
-  group_by(cluster) %&gt;%
+hclust_colour_df_grouped &lt;-
+  tibble(gene = log2FC_MTT_m1_wide$gene,
+         gene_dorder =
+           factor(gene,
+                  levels = log2FC_MTT_m1_wide$gene[hclust_log2FC$order],
+                  ordered = TRUE),
+         y = as.integer(gene_dorder),
+         cluster_select = fct_collapse(gene,
+                                       CQS1   = genecluster_CQS1,
+                                       HSP    = genecluster_SSA1,
+                                       GAT201 = genecluster_GAT201,
+                                       TSA3   = genecluster_TSA3,
+                                       RPs    = genecluster_TEF1,
+                                       other_level = &quot;other&quot;) %&gt;%
+           forcats::fct_recode(NULL = &quot;other&quot;) 
+         ) %&gt;%
+  group_by(cluster_select) %&gt;%
   summarise(n = n(), ymin = min(y), ymax = max(y))
 
-
-plot_grid(plot_dendrogram_log2FC_m1,
-          ggplot(data = hclust_colour_df_grouped) +
-            geom_rect(aes(ymin = ymin, ymax = ymax, fill = cluster), 
-                      xmin = 0, xmax = 1) +
-            scale_colour_brewer() +
-            coord_cartesian(expand = c(0,0), clip = &quot;off&quot;) + 
-            theme_nothing(),
-          # theme(axis.line = element_blank(),
-          #         panel.grid = element_blank(),
-          #         axis.title.y = element_blank(),
-          #         axis.title.x = element_blank(),
-          #         axis.text.x = element_blank(),
-          #         axis.ticks.x = element_blank(),
-          #         legend.position = &quot;none&quot;),
-          plot_log2FC_m1_dorder +
-            theme(axis.title.y = element_blank(),
-                  axis.title.x = element_blank(),
-                  # axis.text.x = element_blank(),
-                  # axis.ticks.x = element_blank(),
-                  legend.position = &quot;none&quot;),
-          ncol = 3,
-          align = &quot;h&quot;, axis = &quot;tb&quot;,
-          rel_widths = c(1,0.2,5))</code></pre>
+plot_cluster_select &lt;- 
+  ggplot(data = hclust_colour_df_grouped %&gt;%
+           dplyr::filter(!is.na(cluster_select))) +
+  geom_rect(aes(ymin = ymin, ymax = ymax),
+            fill = &quot;grey50&quot;,
+            xmin = 0, xmax = 1) +
+  # scale_colour_brewer() +
+  theme_nothing()</code></pre>
 <p>To make those clusters containing genes of interest</p>
 <ul>
 <li>cuttree to make the clusters</li>
@@ -906,10 +909,19 @@ plot_grid(plot_dendrogram_log2FC_m1,
 <h1>TO DO LIST</h1>
 <ul>
 <li>Write figure legend</li>
-<li>Select clusters containing genes of interest
+<li>Select clusters containing genes of interest - DONE
 <ul>
-<li>Plot some mini-heatmaps</li>
-<li>Output genelists for GO analysis</li>
+<li>Plot some mini-heatmaps - DONE</li>
+<li>Output genelists for GO analysis - DONE</li>
+<li>Do GO analysis either manually or via FungiDB API?</li>
+</ul></li>
+<li>Put the figure together
+<ul>
+<li>Improve the mini-heatmap formatting (remove stuff)</li>
+<li>Move the log2FC legend</li>
+<li>Plot the mini-heatmaps next to the big heatmap</li>
+<li>Adjust sizes until it looks nice</li>
+<li>Display GO analysis on figure, somehow</li>
 </ul></li>
 </ul>
 </div>
