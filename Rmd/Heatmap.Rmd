@@ -623,7 +623,7 @@ To make those clusters containing genes of interest
 - plot them
 - vary number or height of clusters until it makes sense
 
-## Plot example genes
+## Plot fold-change of example genes as line plot
 
 ```{r plot_log2FC_line, fig.height = 3, fig.width = 4}
 plot_log2FC_line <- function(mygenes, 
@@ -676,30 +676,51 @@ lineplot_TEF1 <-
   plot_log2FC_line(mygenes = "CNAG_06125") + labs(title = "TEF1")
 ```
 
-```{r plot_log2FC_line_multipanel, fig.height = 6, fig.width = 3}
-log2FC_line_multipanel <- 
-  plot_grid(
-    lineplot_CQS1 + theme(legend.position = "none"),
-    lineplot_SSA1 + theme(legend.position = "none"),
-    lineplot_GAT201 + theme(legend.position = "none"),
-    lineplot_TSA3 + theme(legend.position = "none"),
-    lineplot_TEF1 + theme(legend.position = "none"),
-    get_legend(lineplot_CQS1 + 
-                 guides(col = 
-                          guide_legend(
-                            title.position = "left",
-                            ncol = 2)) + 
-                 theme(#legend.title = element_blank(),
-                   legend.box.margin = 
-                     margin(0, 0, 0, 1, unit = "cm"))
-    ),
-    ncol = 1, rel_heights = c(1,1,1,1,1, .5))
-log2FC_line_multipanel
+## Facet plot of example genes
+
+```{r plot_log2FC_line_faceted, fig.height = 6, fig.width = 3}
+repcluster_genes <- c("CNAG_03012", "CNAG_06443", "CNAG_01551", "CNAG_06917", "CNAG_06125")
+
+repcluster_genenames <- c("CQS1", "SSA1", "GAT201", "TSA3", "TEF1")
+
+repcluster_genes_df <- 
+  tibble(gene  = repcluster_genes %>% as_factor(), 
+         name = repcluster_genenames %>% as_factor()) %>%
+  left_join(deseq_df_MTT) %>%
+    dplyr::filter(MediumTempTime != "YPD_30C_180") %>%
+    dplyr::select(MTT = MediumTempTime, gene, name, log2FC) %>%
+    dplyr::left_join(MTT_df, by = "MTT")
+
+ggplot(data = repcluster_genes_df, 
+       aes(x = Time, y = log2FC,
+           colour = MediumTemp, group = MediumTemp)) +
+  geom_hline(yintercept = 0, size = 0.5, colour = "grey90") +
+  geom_line(size = 1) +
+  scale_y_continuous("mRNA log2 fold-change",
+                     # limits = ylimits,
+                     breaks = seq(-4,4),
+                     expand = c(0.01,0.2)) +
+  scale_x_continuous("Time (mins.)", 
+                     breaks = c(0,10,30,60,120),
+                     expand = c(0.01,0.01)) + 
+  scale_colour_manual(
+    "Condition",
+    # purpleorange
+    values = c("RPMI+ 37°C" = "#5e3c99",
+               "RPMI+ 25°C" = "#b2abd2",
+               "YPD 37°C" = "#e66101",
+               "YPD 25°C" = "#fdb863")) + 
+  guides(colour = guide_legend(
+    title.position = "top",
+    ncol = 2)) +
+  facet_grid(name~., scales = "free", space = "free") +
+  panel_border(color = "black", size = 0.5) +
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "bottom") 
 
 ggsave(filename = "../results/log2FC_line_multipanel_representative.pdf",
        width = 3, height = 6)
 ```
-
 
 
 # TO DO LIST
