@@ -360,34 +360,41 @@ This combines the previous plot panels into a single plot, showing the dendrogra
 
 ```{r combine_dendrogram_heatmap, fig.height = 6, fig.width = 7}
 plot_dh_nolegend <- 
-  plot_grid(plot_dendrogram_log2FC_m1,
+  plot_grid(plot_dendrogram_log2FC_m1 + 
+              theme(plot.margin = unit(c(0, 0, 0, 0), "cm")),
           plot_log2FC_m1_dorder +
             theme(axis.title.y = element_blank(),
                   axis.title.x = element_blank(),
                   axis.text.x = element_blank(),
                   axis.ticks.x = element_blank(),
-                  legend.position = "none"),
-          plot_nice_MTT_yaxis,
-          plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
+                  legend.position = "none",
+                  plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_nice_MTT_yaxis  + 
+              theme(plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_nice_MTT_labels + 
+            theme(axis.text.y = element_blank(),
+                  plot.margin = unit(c(0, 0, 0, 0), "cm")),
           ncol = 2,
           align = "hv",
           rel_widths = c(1,5),
           rel_heights = c(7,1)
           )
 
-plot_grid(plot_dh_nolegend,
-          get_legend(plot_log2FC_m1_dorder + 
-                       theme(legend.box.margin = margin(0, 0, 0, 5))),
-          ncol = 2,
-          rel_widths = c(7,1))
+plot_grid(get_legend(plot_log2FC_m1_dorder + 
+                       labs(fill = "log2 fold-change") +
+                       theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
+                     legend.position = "top")),
+          plot_dh_nolegend,
+          ncol = 1,
+          rel_heights = c(1,7))
 
 # ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
 
 ```
 
-### Attempt to extract and plot clusters
+### Extract and plot clusters
 
-```{r extract_clusters}
+```{r extract_cluster_functions}
 
 make_clustered_df <- function(k = 2, 
                               names_df = log2FC_MTT_m1_wide,
@@ -447,9 +454,9 @@ plot_clustered_genelist <-
             panel.grid.major = element_blank())
     
   }
+```
 
-
-
+```{r extract_clusters}
 genecluster_CQS1 <- make_cluster_with_gene(gene = "CNAG_03012", k = 300)
 
 write_lines(x = genecluster_CQS1, 
@@ -470,12 +477,12 @@ write_lines(x = genecluster_SSA1,
 plot_genecluster_SSA1 <- plot_clustered_genelist(genecluster_SSA1)
 
 
-genecluster_TEF1 <- make_cluster_with_gene(gene = "CNAG_06125", k = 600)
+genecluster_TEF1 <- make_cluster_with_gene(gene = "CNAG_06125", k = 300)
 
 write_lines(x = genecluster_TEF1, 
             file = here::here("results",
                               "geneclusters",
-                              "genecluster_translation_k600.txt"))
+                              "genecluster_translation_k300.txt"))
 
 plot_genecluster_TEF1 <- plot_clustered_genelist(genecluster_TEF1)
 
@@ -498,8 +505,9 @@ write_lines(x = genecluster_GAT201,
                               "genecluster_GAT201_k700.txt"))
 
 plot_genecluster_GAT201 <- plot_clustered_genelist(genecluster_GAT201)
+```
 
-
+```{r collect_clusters}
 hclust_colour_df_grouped <-
   tibble(gene = log2FC_MTT_m1_wide$gene,
          gene_dorder =
@@ -517,16 +525,91 @@ hclust_colour_df_grouped <-
            forcats::fct_recode(NULL = "other") 
          ) %>%
   group_by(cluster_select) %>%
-  summarise(n = n(), ymin = min(y), ymax = max(y))
+  summarise(n = n(), ymin = min(y), ymax = max(y), ymean = mean(y))
+```
 
+```{r plot_clusters}
 plot_cluster_select <- 
   ggplot(data = hclust_colour_df_grouped %>%
            dplyr::filter(!is.na(cluster_select))) +
-  geom_rect(aes(ymin = ymin, ymax = ymax),
-            fill = "grey50",
-            xmin = 0, xmax = 1) +
-  # scale_colour_brewer() +
+  geom_rect(aes(ymin = ymin, ymax = ymax, fill = cluster_select),
+            # fill = "grey50",
+            xmin = -0.1, xmax = 0) +
+  geom_text(aes(y = ymean, 
+                colour = cluster_select, 
+                label = cluster_select),
+            x = 0.1, hjust = 0) +
+  coord_cartesian(xlim = c(-0.1,1)) +
+  #scale_colour_brewer() + scale_fill_brewer() +
   theme_nothing()
+  
+plot_cluster_select
+```
+
+```{r combine_dendrogram_heatmap_clusterlabels, fig.height = 6, fig.width = 7}
+plot_dh_cluster_nolegend <- 
+  plot_grid(plot_dendrogram_log2FC_m1 + 
+              theme(plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_log2FC_m1_dorder +
+            theme(axis.title.y = element_blank(),
+                  axis.title.x = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.ticks.x = element_blank(),
+                  legend.position = "none",
+                  plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_cluster_select + 
+              theme(plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_nice_MTT_yaxis + 
+              theme(plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          plot_nice_MTT_labels + theme(axis.text.y = element_blank(),
+                  plot.margin = unit(c(0, 0, 0, 0), "cm")),
+          NULL,
+          ncol = 3,
+          align = "hv",
+          rel_widths = c(2,10,2),
+          rel_heights = c(7,1)
+          )
+
+plot_grid(get_legend(plot_log2FC_m1_dorder + 
+                       labs(fill = "log2 fold-change") +
+                       theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
+                     legend.position = "top")),
+          plot_dh_cluster_nolegend,
+          ncol = 1,
+          rel_heights = c(1,7))
+
+# ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
+
+```
+
+```{r combine_dendrogram_heatmap_clusters, fig.height = 6, fig.width = 7}
+plot_dh_cluster_nolegend <- 
+  plot_grid(plot_dendrogram_log2FC_m1,
+          plot_log2FC_m1_dorder +
+            theme(axis.title.y = element_blank(),
+                  axis.title.x = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.ticks.x = element_blank(),
+                  legend.position = "none"),
+          plot_cluster_select,
+          plot_nice_MTT_yaxis,
+          plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
+          NULL,
+          ncol = 3,
+          align = "hv",
+          rel_widths = c(2,10,2),
+          rel_heights = c(7,1)
+          )
+
+plot_grid(get_legend(plot_log2FC_m1_dorder + 
+                       labs(fill = "log2 fold-change") +
+                       theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
+                     legend.position = "top")),
+          plot_dh_cluster_nolegend,
+          ncol = 1,
+          rel_heights = c(1,7))
+
+# ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
 
 ```
 
@@ -537,6 +620,30 @@ To make those clusters containing genes of interest
 - select all the genes from that cluster
 - plot them
 - vary number or height of clusters until it makes sense
+
+## Plot example genes
+
+```{r plot_log2FC_line}
+plot_log2FC_line <- function(mygenes, 
+                             datadf = deseq_df_MTT,
+                             labdf = MTT_df) {
+  mydata <- 
+    deseq_df_MTT %>%
+    dplyr::filter(gene %in% mygenes, 
+                  MTT != YPD_30C_180) %>%
+    # RECODE FACTOR MT FOR YPD 30C 0min
+    dplyr::select(MTT = MediumTempTime, gene, log2FC) %>%
+    dplyr::left_join(labdf, by = "MTT")
+  browser()
+  ggplot(data = mydata, aes(x = Time, colour = MT, group = MT)) +
+    geom_line() +
+    coord_cartesian(ylim = c(-3,3))
+    # scale_colour_manual()
+}
+
+plot_log2FC_line(mygenes = "CNAG_03012")
+```
+
 
 
 # TO DO LIST
