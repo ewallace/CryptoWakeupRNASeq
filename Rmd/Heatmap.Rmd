@@ -300,7 +300,9 @@ MTT_df <-
                                  Lag  = c("10","30","60","120"),
                                  Exp = "180"),
          Medium = str_replace(Medium, "RPMIS", "RPMI+"),
-         Temperature = str_replace(Temperature, "C", "°C")
+         Temperature = str_replace(Temperature, "C", "°C"),
+         MediumTemp = paste(Medium, Temperature, sep = " "),
+         Time = as.integer(Time)
          )
 
 MTT_MTime_df <- MTT_df %>%
@@ -609,7 +611,7 @@ plot_grid(get_legend(plot_log2FC_m1_dorder +
           ncol = 1,
           rel_heights = c(1,7))
 
-# ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
+ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.pdf", width = 6, height = 6)
 
 ```
 
@@ -623,25 +625,79 @@ To make those clusters containing genes of interest
 
 ## Plot example genes
 
-```{r plot_log2FC_line}
+```{r plot_log2FC_line, fig.height = 3, fig.width = 4}
 plot_log2FC_line <- function(mygenes, 
                              datadf = deseq_df_MTT,
-                             labdf = MTT_df) {
+                             labdf = MTT_df,
+                             ylimits = c(-2.8,2.8)) {
   mydata <- 
     deseq_df_MTT %>%
     dplyr::filter(gene %in% mygenes, 
-                  MTT != YPD_30C_180) %>%
-    # RECODE FACTOR MT FOR YPD 30C 0min
+                  MediumTempTime != "YPD_30C_180") %>%
     dplyr::select(MTT = MediumTempTime, gene, log2FC) %>%
     dplyr::left_join(labdf, by = "MTT")
-  browser()
-  ggplot(data = mydata, aes(x = Time, colour = MT, group = MT)) +
-    geom_line() +
-    coord_cartesian(ylim = c(-3,3))
-    # scale_colour_manual()
+  ggplot(data = mydata, 
+         aes(x = Time, y = log2FC,
+             colour = MediumTemp, group = MediumTemp)) +
+    geom_hline(yintercept = 0, size = 0.5, colour = "grey90") +
+    geom_line(size = 1) +
+    scale_y_continuous("mRNA log2\nfold-change",
+                       limits = ylimits, breaks = seq(-4,4),
+                       expand = c(0.01,0.01), oob = scales::squish) +
+    scale_x_continuous("Time (mins.)", 
+                       breaks = c(0,10,30,60,120),
+                       expand = c(0.01,0.01)) + 
+    scale_colour_manual(
+      "Condition",
+      # purpleorange
+      values = c("RPMI+ 37°C" = "#5e3c99",
+                 "RPMI+ 25°C" = "#b2abd2",
+                 "YPD 37°C" = "#e66101",
+                 "YPD 25°C" = "#fdb863")) +
+    theme(plot.title = element_text(size = rel(1)),
+          plot.margin = unit(c(0, 0.5, 0, 0.1), "cm"))
 }
 
-plot_log2FC_line(mygenes = "CNAG_03012")
+lineplot_CQS1 <- 
+  plot_log2FC_line(mygenes = "CNAG_03012") + labs(title = "CQS1")
+lineplot_CQS1
+
+lineplot_SSA1 <- 
+  plot_log2FC_line(mygenes = "CNAG_06443") + labs(title = "SSA1")
+
+lineplot_GAT201 <- 
+  plot_log2FC_line(mygenes = "CNAG_01551") + labs(title = "GAT201")
+
+lineplot_TSA3 <- 
+  plot_log2FC_line(mygenes = "CNAG_06917",
+                   ylimits = c(-3,5)) + labs(title = "TSA3")
+
+lineplot_TEF1 <- 
+  plot_log2FC_line(mygenes = "CNAG_06125") + labs(title = "TEF1")
+```
+
+```{r plot_log2FC_line_multipanel, fig.height = 6, fig.width = 3}
+log2FC_line_multipanel <- 
+  plot_grid(
+    lineplot_CQS1 + theme(legend.position = "none"),
+    lineplot_SSA1 + theme(legend.position = "none"),
+    lineplot_GAT201 + theme(legend.position = "none"),
+    lineplot_TSA3 + theme(legend.position = "none"),
+    lineplot_TEF1 + theme(legend.position = "none"),
+    get_legend(lineplot_CQS1 + 
+                 guides(col = 
+                          guide_legend(
+                            title.position = "left",
+                            ncol = 2)) + 
+                 theme(#legend.title = element_blank(),
+                   legend.box.margin = 
+                     margin(0, 0, 0, 1, unit = "cm"))
+    ),
+    ncol = 1, rel_heights = c(1,1,1,1,1, .5))
+log2FC_line_multipanel
+
+ggsave(filename = "../results/log2FC_line_multipanel_representative.pdf",
+       width = 3, height = 6)
 ```
 
 
