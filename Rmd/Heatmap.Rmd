@@ -230,7 +230,8 @@ plot_log2FC_m1_dorder <-
          aes(x = MediumTempTime, fill = log2FC, y = gene_dorder)) +
   geom_tile() +
   scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
-                       limits = c(-3, 3), oob = scales::squish) +
+                       limits = c(-3, 3), oob = scales::squish,
+                       guide = guide_colorbar(nbin = 36, raster = FALSE)) +
   coord_cartesian(expand = c(0,0), clip = "off") + 
   theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
         panel.grid.major = element_blank(),
@@ -323,10 +324,36 @@ MTT_Time_df <- MTT_df %>%
   dplyr::summarise(xmean = mean(x), xmin = min(x), xmax = max(x),
                    .groups = "keep") 
 
-plot_nice_MTT_labels <- 
+plot_nice_MTT_labels_texttemp <- 
   ggplot(data = MTT_df  %>%
            dplyr::filter(MTT != "YPD_25C_0") ) +
   geom_text(aes(x = x, label = Temperature), y = 3, size = 2.6) + 
+  geom_text(data = MTT_MTime_df, aes(x = xmean, label = Medium), y = 2, size = 2.9) + 
+  geom_segment(data = MTT_MTime_df,
+               aes(x = xmin, xend = xmax), y = 2.5, yend = 2.5) +
+  geom_text(data = MTT_Time_df, aes(x = xmean, label = Time), y = 1) + 
+  geom_segment(data = MTT_Time_df,
+               aes(x = xmin, xend = xmax), y = 1.5, yend = 1.5) +
+  scale_y_continuous(limits = c(0.5,3.5),
+                     breaks = c(1,2,3),
+                     labels = c("Time (mins)", "Medium", "Temperature")) + 
+  scale_x_continuous(limits = c(0.5, max(MTT_df$x + 0.5))) + 
+  coord_cartesian(expand = c(0,0), clip = "off") + 
+  theme_nothing() + 
+  theme(axis.text.y = element_text())
+
+plot_nice_MTT_labels <- 
+  ggplot(data = MTT_df  %>%
+           dplyr::filter(MTT != "YPD_25C_0") ) +
+  geom_point(aes(x = x, colour = MediumTemp), y = 3, size = 2.5) + 
+  scale_colour_manual(
+    "Condition",
+    # purpleorange
+    values = c("RPMI+ 37°C" = "#5e3c99",
+               "RPMI+ 25°C" = "#b2abd2",
+               "YPD 37°C" = "#e66101",
+               "YPD 25°C" = "#fdb863",
+               "YPD 30°C" = "darkgreen")) +
   geom_text(data = MTT_MTime_df, aes(x = xmean, label = Medium), y = 2, size = 2.9) + 
   geom_segment(data = MTT_MTime_df,
                aes(x = xmin, xend = xmax), y = 2.5, yend = 2.5) +
@@ -383,7 +410,7 @@ plot_dh_nolegend <-
           )
 
 plot_grid(get_legend(plot_log2FC_m1_dorder + 
-                       labs(fill = "log2 fold-change") +
+                       labs(fill = "mRNA log2 fold-change") +
                        theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
                      legend.position = "top")),
           plot_dh_nolegend,
@@ -534,14 +561,16 @@ hclust_colour_df_grouped <-
 plot_cluster_select <- 
   ggplot(data = hclust_colour_df_grouped %>%
            dplyr::filter(!is.na(cluster_select))) +
-  geom_rect(aes(ymin = ymin, ymax = ymax, fill = cluster_select),
-            # fill = "grey50",
+  geom_rect(aes(ymin = ymin, ymax = ymax
+                #, fill = cluster_select
+                ),
+            fill = "grey50",
             xmin = -0.1, xmax = 0) +
-  geom_text(aes(y = ymean, 
-                colour = cluster_select, 
-                label = cluster_select),
-            x = 0.1, hjust = 0) +
-  coord_cartesian(xlim = c(-0.1,1)) +
+  # geom_text(aes(y = ymean, 
+  #               colour = cluster_select, 
+  #               label = cluster_select),
+  #           x = 0.1, hjust = 0) +
+  coord_cartesian(xlim = c(-0.1,0)) +
   #scale_colour_brewer() + scale_fill_brewer() +
   theme_nothing()
   
@@ -568,52 +597,23 @@ plot_dh_cluster_nolegend <-
           NULL,
           ncol = 3,
           align = "hv",
-          rel_widths = c(2,10,2),
+          rel_widths = c(1,5,0.1),
           rel_heights = c(7,1)
           )
 
 plot_grid(get_legend(plot_log2FC_m1_dorder + 
-                       labs(fill = "log2 fold-change") +
+                       labs(fill = "mRNA log2 fold-change") +
                        theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
-                     legend.position = "top")),
+                             legend.key.width = unit(0.25,"in"),
+                             legend.position = "top")),
           plot_dh_cluster_nolegend,
           ncol = 1,
           rel_heights = c(1,7))
 
-# ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.png", width = 6, height = 6)
+ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.pdf", width = 5, height = 5)
 
 ```
 
-```{r combine_dendrogram_heatmap_clusters, fig.height = 6, fig.width = 7}
-plot_dh_cluster_nolegend <- 
-  plot_grid(plot_dendrogram_log2FC_m1,
-          plot_log2FC_m1_dorder +
-            theme(axis.title.y = element_blank(),
-                  axis.title.x = element_blank(),
-                  axis.text.x = element_blank(),
-                  axis.ticks.x = element_blank(),
-                  legend.position = "none"),
-          plot_cluster_select,
-          plot_nice_MTT_yaxis,
-          plot_nice_MTT_labels + theme(axis.text.y = element_blank()),
-          NULL,
-          ncol = 3,
-          align = "hv",
-          rel_widths = c(2,10,2),
-          rel_heights = c(7,1)
-          )
-
-plot_grid(get_legend(plot_log2FC_m1_dorder + 
-                       labs(fill = "log2 fold-change") +
-                       theme(legend.box.margin = margin(0, 0, 0, 2, unit = "cm"), 
-                     legend.position = "top")),
-          plot_dh_cluster_nolegend,
-          ncol = 1,
-          rel_heights = c(1,7))
-
-ggsave(filename = "../results/clustered_heatmap_GAT201ConditionTime.pdf", width = 6, height = 6)
-
-```
 
 To make those clusters containing genes of interest
 
@@ -716,10 +716,11 @@ ggplot(data = repcluster_genes_df,
   facet_grid(name~., scales = "free", space = "free") +
   panel_border(color = "black", size = 0.5) +
   theme(strip.text.y = element_text(angle = 0),
-        legend.position = "bottom") 
+        legend.position = "none",
+        plot.margin = unit(c(0.1, 0, 0.1, 0), "in")) 
 
-ggsave(filename = "../results/log2FC_line_multipanel_representative.pdf",
-       width = 3, height = 6)
+ggsave(filename = "../results/log2FC_line_multipanel_clusterselect.pdf",
+       width = 2.5, height = 5)
 ```
 
 
