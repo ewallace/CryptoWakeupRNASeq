@@ -570,7 +570,10 @@ plot_cluster_select <-
   #               colour = cluster_select, 
   #               label = cluster_select),
   #           x = 0.1, hjust = 0) +
-  coord_cartesian(xlim = c(-0.1,0)) +
+  coord_cartesian(xlim = c(-0.1,0), 
+                  ylim = c(min(hclust_colour_df_grouped$ymin),
+                           max(hclust_colour_df_grouped$ymax)),
+                  expand = c(0,0), clip = "off") +
   #scale_colour_brewer() + scale_fill_brewer() +
   theme_nothing()
   
@@ -676,7 +679,7 @@ lineplot_TEF1 <-
   plot_log2FC_line(mygenes = "CNAG_06125") + labs(title = "TEF1")
 ```
 
-## Facet plot of example genes
+## Facet plot of example genes for main figure
 
 ```{r plot_log2FC_line_faceted, fig.height = 6, fig.width = 3}
 repcluster_genes <- c("CNAG_03012", "CNAG_06443", "CNAG_01551", "CNAG_06917", "CNAG_06125")
