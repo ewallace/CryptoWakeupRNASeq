@@ -464,8 +464,8 @@ make_cluster_with_gene <- function(gene_bait,
                                    output = c("list", "df")) {
   clustered_df <- 
     make_clustered_df(k = k, 
-                      names_df = log2FC_MTT_m1_wide,
-                      hclust_results = hclust_log2FC)
+                      names_df = names_df,
+                      hclust_results = hclust_results)
   get_cluster_from_clustered_df(gene_bait, clustered_df)
 }
 
@@ -477,7 +477,7 @@ plot_clustered_genelist <-
       geom_tile() +
       scale_fill_gradient2(low = "cyan", mid = "black", high = "yellow",
                            limits = c(-3, 3), oob = scales::squish) +
-      scale_y_discrete(breaks = genes_select, labels = names(genes_select)) +
+      scale_y_discrete(breaks = genelist, labels = names(genelist)) +
       coord_cartesian(expand = c(0,0), clip = "off") + 
       theme(axis.text.x = element_text(angle = -45, hjust = 0.1),
             panel.grid.major = element_blank())
@@ -682,45 +682,52 @@ lineplot_TEF1 <-
 ## Facet plot of example genes for main figure
 
 ```{r plot_log2FC_line_faceted, fig.height = 6, fig.width = 3}
-repcluster_genes <- c("CNAG_03012", "CNAG_06443", "CNAG_01551", "CNAG_06917", "CNAG_06125")
 
-repcluster_genenames <- c("CQS1", "SSA1", "GAT201", "TSA3", "TEF1")
-
-repcluster_genes_df <- 
-  tibble(gene  = repcluster_genes %>% as_factor(), 
-         name = repcluster_genenames %>% as_factor()) %>%
-  left_join(deseq_df_MTT) %>%
+plot_mygenes_facet <- function(mygenes,
+                               mygenenames, 
+                               deseq_df = deseq_df_MTT,
+                               meta_df = MTT_df) {
+  mygenes_df <- 
+    tibble(gene  = mygenes %>% as_factor(), 
+           name = mygenenames %>% as_factor()) %>%
+    dplyr::left_join(deseq_df) %>%
     dplyr::filter(MediumTempTime != "YPD_30C_180") %>%
     dplyr::select(MTT = MediumTempTime, gene, name, log2FC) %>%
-    dplyr::left_join(MTT_df, by = "MTT")
+    dplyr::left_join(meta_df, by = "MTT")
+  
+  ggplot(data = mygenes_df, 
+         aes(x = Time, y = log2FC,
+             colour = MediumTemp, group = MediumTemp)) +
+    geom_hline(yintercept = 0, size = 0.5, colour = "grey90") +
+    geom_line(size = 1) +
+    scale_y_continuous("mRNA log2 fold-change",
+                       # limits = ylimits,
+                       breaks = seq(-4,4),
+                       expand = c(0.01,0.2)) +
+    scale_x_continuous("Time (mins.)", 
+                       breaks = c(0,10,30,60,120),
+                       expand = c(0.01,0.01)) + 
+    scale_colour_manual(
+      "Condition",
+      # purpleorange
+      values = c("RPMI+ 37°C" = "#5e3c99",
+                 "RPMI+ 25°C" = "#b2abd2",
+                 "YPD 37°C" = "#e66101",
+                 "YPD 25°C" = "#fdb863")) + 
+    guides(colour = guide_legend(
+      title.position = "top",
+      ncol = 2)) +
+    facet_grid(name~., scales = "free", space = "free") +
+    panel_border(color = "black", size = 0.5) +
+    theme(strip.text.y = element_text(angle = 0),
+          legend.position = "none",
+          plot.margin = unit(c(0.1, 0, 0.1, 0), "in"))
+}
 
-ggplot(data = repcluster_genes_df, 
-       aes(x = Time, y = log2FC,
-           colour = MediumTemp, group = MediumTemp)) +
-  geom_hline(yintercept = 0, size = 0.5, colour = "grey90") +
-  geom_line(size = 1) +
-  scale_y_continuous("mRNA log2 fold-change",
-                     # limits = ylimits,
-                     breaks = seq(-4,4),
-                     expand = c(0.01,0.2)) +
-  scale_x_continuous("Time (mins.)", 
-                     breaks = c(0,10,30,60,120),
-                     expand = c(0.01,0.01)) + 
-  scale_colour_manual(
-    "Condition",
-    # purpleorange
-    values = c("RPMI+ 37°C" = "#5e3c99",
-               "RPMI+ 25°C" = "#b2abd2",
-               "YPD 37°C" = "#e66101",
-               "YPD 25°C" = "#fdb863")) + 
-  guides(colour = guide_legend(
-    title.position = "top",
-    ncol = 2)) +
-  facet_grid(name~., scales = "free", space = "free") +
-  panel_border(color = "black", size = 0.5) +
-  theme(strip.text.y = element_text(angle = 0),
-        legend.position = "none",
-        plot.margin = unit(c(0.1, 0, 0.1, 0), "in")) 
+plot_mygenes_facet(
+  mygenes = c("CNAG_03012", "CNAG_06443", "CNAG_01551", "CNAG_06917", "CNAG_06125"),
+  mygenenames = c("CQS1", "SSA1", "GAT201", "TSA3", "TEF1")
+)
 
 ggsave(filename = "../results/log2FC_line_multipanel_clusterselect.pdf",
        width = 2.5, height = 5)
