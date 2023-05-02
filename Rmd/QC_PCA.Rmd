@@ -189,8 +189,11 @@ pcdf_rlog
 ```{r calculate_propvar}
 propvar_rlog_df <- tibble(
   PC = seq.int(1L, ncol(pca_rlog$x) ),
-  prop_var = pca_rlog$sdev^2/sum(pca_rlog$sdev^2)
+  tot_var = pca_rlog$sdev^2,
+  prop_var = tot_var/sum(tot_var)
 )
+
+propvar_rlog_df
 ```
 
 ## Plot PCA percentage variance explained to find how many PCs to pay attention to.
@@ -234,7 +237,7 @@ Overall this argues that the biological replicates are clustering together in PC
 
 ## Plot PC1 vs PC2, 3, 4, also with default values
 
-```{r plot_PC1234_text, fig.height=8, fig.width=8}
+```{r plot_PC1234_text, fig.height=7.7, fig.width=7.5}
 # This could be wraped in a function
 pc_baseplot <- 
   ggplot(data = pcdf_rlog,
@@ -245,12 +248,19 @@ pc_baseplot <-
   geom_vline(xintercept = 0, size = 0.5, colour = "grey80") +
   theme(legend.position = "none") +
   scale_colour_manual(# purpleorange
+    "Medium, Temperature",
     values = c("RPMI+ 37C" = "#5e3c99",
                "RPMI+ 25C" = "#b2abd2",
                "YPD 37C" = "#e66101",
                "YPD 25C" = "#fdb863",
                "YPD 30C" = "darkgreen",
-               "YPD 5days" = "grey10")) +
+               "YPD 5days" = "grey10"),
+    labels = c("RPMI+ 37C" = "RPMI+ 37°C",
+               "RPMI+ 25C" = "RPMI+ 37°C",
+               "YPD 37C" = "YPD 37°C",
+               "YPD 25C" = "YPD 25°C",
+               "YPD 30C" = "YPD 25°C 180min",
+               "YPD 5days" = "YPD 5 days stationary")) +
   coord_cartesian(clip = "off")
 
 pcplot_12 <- pc_baseplot + geom_text(aes(x = PC1, y = PC2), key_glyph = "point")
@@ -260,9 +270,12 @@ pcplot_23 <- pc_baseplot + geom_text(aes(x = PC2, y = PC3))
 pcplot_24 <- pc_baseplot + geom_text(aes(x = PC2, y = PC4))
 pcplot_34 <- pc_baseplot + geom_text(aes(x = PC3, y = PC4))
 
-pcplot_legend <- get_legend(pcplot_12 + theme(legend.position = "right"))
+pcplot_legend <- 
+  get_legend(pcplot_12 + 
+               theme(legend.position = "right",
+                     legend.box.margin = margin(4, 5, 4, 40)))
 
-plot_grid(pcplot_12, NULL, pcplot_legend, 
+plot_grid(pcplot_12, pcplot_legend, plot_percentvar_rlog,
           pcplot_13, pcplot_23, NULL, 
           pcplot_14, pcplot_24, pcplot_34)
 ```
@@ -273,6 +286,25 @@ plot_grid(pcplot_12, NULL, pcplot_legend,
 - PC3 mostly separates temperature, with 25C (cold) at the top at 37C (hot) at the bottom.
 - PC4 separates stationary phase (YC0A/B) from everything else.
 - A better choice of colours and display might make this clearer.
+
+
+## Output PC1 vs PC2 for multipanel figure
+
+```{r plot_PC12_panel, fig.height=2, fig.width=2}
+pcplot_12 <- pc_baseplot + 
+  geom_text(aes(x = PC1, y = PC2)) +
+  labs(x = paste0("PC1, ", 
+                  round(propvar_rlog_df$prop_var[1] * 100),
+                  "% of var."),
+       y  = paste0("PC2, ", 
+                  round(propvar_rlog_df$prop_var[2] * 100),
+                  "% of var."))
+
+pcplot_12
+
+ggsave(filename = "../results/pc12plot.pdf", width = 2.4, height = 2.4)
+```
+
 
 # Write out counts and TPMs (length-normalized counts) by sample code
 

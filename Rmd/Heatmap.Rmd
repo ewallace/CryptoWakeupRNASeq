@@ -686,7 +686,9 @@ lineplot_TEF1 <-
 plot_mygenes_facet <- function(mygenes,
                                mygenenames, 
                                deseq_df = deseq_df_MTT,
-                               meta_df = MTT_df) {
+                               meta_df = MTT_df,
+                               facet_option = c("stack_free", "grid_fixed")
+                               ) {
   mygenes_df <- 
     tibble(gene  = mygenes %>% as_factor(), 
            name = mygenenames %>% as_factor()) %>%
@@ -695,9 +697,10 @@ plot_mygenes_facet <- function(mygenes,
     dplyr::select(MTT = MediumTempTime, gene, name, log2FC) %>%
     dplyr::left_join(meta_df, by = "MTT")
   
-  ggplot(data = mygenes_df, 
-         aes(x = Time, y = log2FC,
-             colour = MediumTemp, group = MediumTemp)) +
+  plot_out <- 
+    ggplot(data = mygenes_df, 
+           aes(x = Time, y = log2FC,
+               colour = MediumTemp, group = MediumTemp)) +
     geom_hline(yintercept = 0, size = 0.5, colour = "grey90") +
     geom_line(size = 1) +
     scale_y_continuous("mRNA log2 fold-change",
@@ -716,12 +719,19 @@ plot_mygenes_facet <- function(mygenes,
                  "YPD 25°C" = "#fdb863")) + 
     guides(colour = guide_legend(
       title.position = "top",
-      ncol = 2)) +
-    facet_grid(name~., scales = "free", space = "free") +
+      ncol = 2))  +
     panel_border(color = "black", size = 0.5) +
     theme(strip.text.y = element_text(angle = 0),
           legend.position = "none",
           plot.margin = unit(c(0.1, 0, 0.1, 0), "in"))
+  if (facet_option == "stack_free") {
+    plot_out <- plot_out + 
+      facet_grid(name~., scales = "free", space = "free")
+  } else if (facet_option == "wrap_fixed") {
+    plot_out <- plot_out + 
+      facet_wrap(~ name)
+  }
+  return(plot_out)
 }
 
 plot_mygenes_facet(
@@ -733,6 +743,20 @@ ggsave(filename = "../results/log2FC_line_multipanel_clusterselect.pdf",
        width = 2.5, height = 5)
 ```
 
+
+```{r plot_log2FC_line_faceted_30genes, fig.height = 9, fig.width = 7.5}
+
+my25genes <- read_tsv("../input/annotation/CryptoWakeup_30genes.txt")
+
+plot_mygenes_facet(
+  mygenes =  my25genes$GeneID,
+  mygenenames = my25genes$GeneName,
+  facet_option = "wrap_fixed"
+) + theme(legend.position = "top")
+
+ggsave(filename = "../results/log2FC_line_30genes.png",
+       width = 7.5, height = 9.5)
+```
 
 # TO DO LIST
 
