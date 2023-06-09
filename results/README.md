@@ -57,6 +57,8 @@ This analysis was performed on FungiDB in March 2023.
 
 Differentially expressed gene analysis. Both data frames of statistics for all genes `deseq_df....txt` and genelists of differentially up or down-regulated genes 2-fold at 5% false discovery rate `deglist_...2x_FDR5.txt`.
 
+Also `CryptoWakeup_geneclusters.xlsx` - combines `deseq_df....txt` into a single .xlsx file.
+
 These lists are made by scripts in the `Rmd` folder, see the scripts for details:
 
 - `DGE_RPMIvsYPD_37C1hr.Rmd`

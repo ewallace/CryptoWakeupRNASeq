@@ -23,12 +23,15 @@ Comparing temperature 37C vs 25C in each media, also comparing media RPMI+ to YP
 
 Results go in `results/DEGs` - deseqdf with all results, and deglist with just lists of up- and down-regulated genes.
 
-### DGE_37Cvs25C_RPMI1hr.Rmd
+### `DGE_37Cvs25C_RPMI1hr.Rmd`
 
-### DGE_37Cvs25C_YPD1hr.Rmd
+### `DGE_37Cvs25C_YPD1hr.Rmd`
 
-### DGE_RPMIvsYPD_25C1hr.Rmd
+### `DGE_RPMIvsYPD_25C1hr.Rmd`
 
-### DGE_RPMIvsYPD_37C1hr.Rmd
+### `DGE_RPMIvsYPD_37C1hr.Rmd`
 
+### `Combine_DGE_tables.Rmd`
+
+Combines tables into a single .xlsx file for output: `/results/geneclusters/CryptoWakeup_geneclusters.xlsx`
 ## MORE TO ADD
