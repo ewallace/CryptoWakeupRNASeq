@@ -45,7 +45,7 @@ Clusters of co-regulated genes, output by `Rmd/Heatmap.Rmd` - see the script for
 - `genecluster_stationary_k300.txt` - cluster up in stationary phase
 - `genecluster_translation_k300.txt` - cluster of translation-related genes
 - `genecluster_TSA3_k500.txt` - cluster containing TSA3, strongly induced in RPMI
-
+- `CryptoWakeup_geneclusters.xlsx` - all the above genelist collected into an .xlsx file
 
 
 # geneclusters_GOKEGG

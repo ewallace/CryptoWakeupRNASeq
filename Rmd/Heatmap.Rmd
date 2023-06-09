@@ -26,6 +26,7 @@ It concludes that... EDIT
 ```{r load_libraries}
 library(ggdendro)
 library(vegan)
+library(writexl)
 ```
 
 
@@ -536,6 +537,33 @@ write_lines(x = genecluster_GAT201,
 plot_genecluster_GAT201 <- plot_clustered_genelist(genecluster_GAT201)
 ```
 
+### Write gene clusters out to results folder
+
+Order of sheets corresponds to display order in heatmap, below.
+
+```{r write_clusters_xl}
+write_xlsx(
+  x = list(
+    legend = tibble(
+      c("Gene clusters from analysis of Cryptococcus Wakeup RNA-seq dataset",
+        "Edward Wallace Edward.Wallace@ed.ac.uk",
+        "repository: https://github.com/ewallace/CryptoWakeupRNASeq/",
+        "see file Heatmap.Rmd")),
+    stationary_CQS1      = tibble(genecluster_CQS1),
+    heat_SSA1            = tibble(genecluster_SSA1),
+    induction_GAT201     = tibble(genecluster_GAT201),
+    stronginduction_TSA3 = tibble(genecluster_TSA3),
+    translation_TEF1     = tibble(genecluster_TEF1)
+  ),
+  path = here::here("results/geneclusters/CryptoWakeup_geneclusters.xlsx"),
+  col_names = FALSE,
+  format_headers = FALSE,
+  use_zip64 = FALSE
+)
+```
+
+###
+
 ```{r collect_clusters}
 hclust_colour_df_grouped <-
   tibble(gene = log2FC_MTT_m1_wide$gene,
@@ -556,6 +584,8 @@ hclust_colour_df_grouped <-
   group_by(cluster_select) %>%
   summarise(n = n(), ymin = min(y), ymax = max(y), ymean = mean(y))
 ```
+
+### Plot clusters
 
 ```{r plot_clusters}
 plot_cluster_select <- 
@@ -579,6 +609,8 @@ plot_cluster_select <-
   
 plot_cluster_select
 ```
+
+### Combine dendrogram and heatmap with cluster labels.
 
 ```{r combine_dendrogram_heatmap_clusterlabels, fig.height = 6, fig.width = 7}
 plot_dh_cluster_nolegend <- 
@@ -625,6 +657,7 @@ To make those clusters containing genes of interest
 - select all the genes from that cluster
 - plot them
 - vary number or height of clusters until it makes sense
+
 
 ## Plot fold-change of example genes as line plot
 
@@ -758,16 +791,10 @@ ggsave(filename = "../results/log2FC_line_30genes.png",
        width = 7.5, height = 9.5)
 ```
 
-# TO DO LIST
 
-- Write figure legend
-- Select clusters containing genes of interest - DONE
-  - Plot some mini-heatmaps - DONE
-  - Output genelists for GO analysis - DONE
-  - Do GO analysis either manually or via FungiDB API?
-- Put the figure together
-  - Improve the mini-heatmap formatting (remove stuff)
-  - Move the log2FC legend
-  - Plot the mini-heatmaps next to the big heatmap
-  - Adjust sizes until it looks nice
-  - Display GO analysis on figure, somehow
+# Session info for reproducibility
+
+```{r session_info}
+sessionInfo()
+```
+
