@@ -1,0 +1,59 @@
+---
+title: "Combine DEG tables"
+author: "Edward Wallace"
+date: '2023-06-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+library(writexl)
+library(magrittr)
+library(tibble)
+```
+
+This file combines .txt format differential expressed gene tables in .txt format into a single .xlsx file for supplementary data Table S2, `CryptoWakeup_DEG_analysis_collected.xlsx`. That's all.
+
+Run this **after** all the R markdown files `DGE_....Rmd`.
+
+
+## Load data
+
+```{r load_data}
+read_deseqdf <- function(filename, datadir = "results/DEGs") {
+  here::here(datadir, filename) %>%
+    readr::read_tsv()
+}
+
+deseq_df_37Cvs25C_RPMI1hr    <-  read_deseqdf("deseq_df_37Cvs25C_RPMI1hr.txt")
+deseq_df_37Cvs25C_YPD1hr     <-  read_deseqdf("deseq_df_37Cvs25C_YPD1hr.txt")
+deseq_df_RPMIvsYPD_25C1hr    <-  read_deseqdf("deseq_df_RPMIvsYPD_25C1hr.txt")
+deseq_df_RPMIvsYPD_37C1hr    <-  read_deseqdf("deseq_df_RPMIvsYPD_37C1hr.txt")
+deseq_df_RPMI37C2hr_vs_0min  <-  read_deseqdf("deseq_df_RPMI37C2hr_vs_0min.txt")
+
+```
+
+## Write data to xlsx
+
+```{r write_data}
+write_xlsx(
+  x = list(
+    legend = tibble(
+      Contents = c("Differential Expressed Gene analysis of Cryptococcus Wakeup RNA-seq dataset",
+        "Edward Wallace Edward.Wallace@ed.ac.uk",
+        "repository: https://github.com/ewallace/CryptoWakeupRNASeq/",
+        "see files DGE_xxxx.Rmd")),
+    `37Cvs25C_RPMI1hr`   = deseq_df_37Cvs25C_RPMI1hr,
+    `37Cvs25C_YPD1hr`    = deseq_df_37Cvs25C_YPD1hr,
+    `RPMIvsYPD_25C1hr`   = deseq_df_RPMIvsYPD_25C1hr,
+    `RPMIvsYPD_37C1hr`   = deseq_df_RPMIvsYPD_37C1hr,
+    `RPMI37C2hr_vs_0min` = deseq_df_RPMI37C2hr_vs_0min
+  ),
+  path = here::here("results/DEGs", 
+                    "CryptoWakeup_DGE_analysis_collected.xlsx"),
+  col_names = TRUE,
+  format_headers = TRUE,
+  use_zip64 = FALSE
+)
+```
+
