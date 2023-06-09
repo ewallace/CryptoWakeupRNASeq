@@ -1,0 +1,2 @@
+ID	Name	Bgd count	Result count	Result gene list	Pct of bgd	Fold enrichment	Odds ratio	P-value	Benjamini	Bonferroni
+GO:0006457	protein folding	39	6	CNAG_01696,CNAG_02500,CNAG_03891,CNAG_03892,CNAG_06106,CNAG_06150,	15.4	17.09	22.87	9.92204811451e-07	1.58752769832e-05	1.58752769832e-05
