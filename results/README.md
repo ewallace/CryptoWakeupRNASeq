@@ -1,6 +1,14 @@
 # CryptoWakeupRNASeq/results
 
-Results of data analysis in various formats
+Results of RNA-seq data analysis in various formats. Contents listed below.
+
+Plots first: 
+
+- `pc12plot.pdf` - Principal components 1 & 2, Figure 1C of paper, made by `Rmd/QC_PCA.Rmd`
+- `clustered_heatmap_GAT201ConditionTime.pdf` - clustered heatmap, Figure 1D of paper, made by `Rmd/Heatmap.Rmd`
+- `log2FC_line_multipanel_clusterselect.pdf` - cluster representative genes as line plot, Figure 1E of paper, made by `Rmd/Heatmap.Rmd`
+- `log2FC_line_30genes.png` - 30 select genes as line plot, Figure 1E of paper, made by `Rmd/Heatmap.Rmd`
+
 
 # counts
 
