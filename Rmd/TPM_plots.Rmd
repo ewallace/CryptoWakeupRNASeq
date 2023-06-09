@@ -107,6 +107,26 @@ plotmygenes <- function(genelist = c("CNAG_00121", "CNAG_00483"),
 plotmygenes(c("CNAG_01551","CNAG_06762"))
 ```
 
+```{r genes_of_interest}
+genes_translation <- c(RPS3 = "CNAG_00116", 
+                       RPL2 = "CNAG_05232", 
+                       TEF1 = "CNAG_06125")
+genes_stationary <- c(CQS1 = "CNAG_03012", 
+                      HSP12 = "CNAG_03143", 
+                      BLP2 = "CNAG_06347")
+genes_heat <- c(SSA1 = "CNAG_06443", 
+                HSP90 = "CNAG_06150", 
+                # HSP10 = "CNAG_03892"
+                TSA3 = "CNAG_06917")
+genes_GAT201 <- c(GAT201 = "CNAG_01551", 
+                  GAT204 = "CNAG_06762", 
+                  LIV3 = "CNAG_05835")
+
+genes_select <- c(genes_translation, genes_stationary, 
+                  genes_heat, genes_GAT201)
+```
+
+
 # TO DO
 
 - pick genes of interest to highlight
