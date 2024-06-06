@@ -10,15 +10,15 @@ output:
 
 # Summary
 
-Differential Gene Expression of RPMI vs YPD in 37C 2hr samples using DESeq2.
+Differential Gene Expression of RPMI 37C 2hr samples compared to pre-wakeup 0 min (= 5 days in YPD), using DESeq2.
 
 The medium was RPMI + 10% FBS, abbreviated here to RPMI without subsequently mentioning the serum.
 
-This analysis does:
+This analysis produces files:
 
-- EDIT
-
-It concludes that... EDIT
+- `deseq_df_RPMI37C2hr_vs_0min.txt`
+- `deglist_RPMI37C2hr_vs_0min_up2x_FDR5.txt`
+- `deglist_RPMI37C2hr_vs_0min_down2x_FDR5.txt`
 
 ## Load count data from shared script load_count_data.Rmd
 

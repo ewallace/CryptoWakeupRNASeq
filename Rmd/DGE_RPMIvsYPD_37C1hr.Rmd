@@ -14,11 +14,11 @@ Differential Gene Expression of RPMI vs YPD in 37C 1hr samples using DESeq2.
 
 The medium was RPMI + 10% FBS, abbreviated here to RPMI without subsequently mentioning the serum.
 
-This analysis does:
+This analysis produces files:
 
-- EDIT
-
-It concludes that... EDIT
+- `deseq_df_RPMIvsYPD_37C1hr.txt`
+- `deglist_RPMIvsYPD_37C1hr_up2x_FDR5.txt`
+- `deglist_RPMIvsYPD_37C1hr_down2x_FDR5.txt`
 
 ## Load count data from shared script load_count_data.Rmd
 

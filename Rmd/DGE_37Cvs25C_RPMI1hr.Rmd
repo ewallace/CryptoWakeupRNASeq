@@ -10,13 +10,13 @@ output:
 
 # Summary
 
-Differential Gene Expression of 37C vs 25C in RPMI + Serum samples using DESeq2
+Differential Gene Expression of 37C vs 25C in RPMI + Serum samples at 1hr, using DESeq2
 
-This analysis does:
+This analysis produces files:
 
-- EDIT
-
-It concludes that... EDIT
+- `deseq_df_37Cvs25C_RPMI1hr.txt`
+- `deglist_37Cvs25C_RPMI1hr_up2x_FDR5.txt`
+- `deglist_37Cvs25C_RPMI1hr_down2x_FDR5.txt`
 
 ## Load count data from shared script load_count_data.Rmd
 

@@ -10,13 +10,13 @@ output:
 
 # Summary
 
-Differential Gene Expression of 37C vs 25C in YPD samples using DESeq2
+Differential Gene Expression of 37C vs 25C in YPD samples at 1hr, using DESeq2
 
-This analysis does:
+This analysis produces files:
 
-- EDIT
-
-It concludes that... EDIT
+- `deseq_df_37Cvs25C_YPD1hr.txt`
+- `deglist_37Cvs25C_YPD1hr_up2x_FDR5.txt`
+- `deglist_37Cvs25C_YPD1hr_down2x_FDR5.txt`
 
 ## Load count data from shared script load_count_data.Rmd
 
@@ -127,7 +127,6 @@ volcano_37Cvs25C_YPD1hr
 
 The volcano plot shows a clear set of genes with log2FC less than 2 but adjusted p-value below 0.05.
 
-Check that - cutoff might miss an interesting group of genes e.g. downregulated ribosomal proteins.
 
 
 ## Write outputs to files
